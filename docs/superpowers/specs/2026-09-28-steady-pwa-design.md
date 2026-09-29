@@ -118,3 +118,35 @@ Static site at the repo root, with Netlify publish directory `.` and no build co
 ## Out of scope for v1
 
 Web Push reminders, direct Oura API, native app, accounts, sync between devices, and a merge-style import.
+
+---
+
+# Addendum (2026-09-29): sharing mood with a support person
+
+## Phase A (build now): you-initiated sharing, no server
+
+**Support person settings** live in the backup sheet and are stored in IndexedDB `meta:support`:
+`{name, phone, threshold 2–4 (default 3), prompt true|false, message}`.
+- `phone` is optional. With a phone number, messages open `sms:<phone>&body=<text>` (the iOS Messages link format). Without one, the Web Share sheet (`navigator.share({text})`) opens. If that is unavailable, the text is copied to the clipboard.
+- The default message is `Rough day today (mood {mood}/10). Could you check in on me?`, where `{mood}` is replaced with the score.
+- The settings are included in backups as an optional top-level `settings.support` field. Backups without it still restore. "Delete all entries" keeps the settings. "Remove support person" uses an inline confirmation.
+- Copy shown with the settings: "{Name} isn't a crisis service and may not see this right away. In an emergency, call or text 988."
+
+**Low-day prompt:** after saving a check-in the prompt shows when all of these hold: the entry's date is today, `mood <= threshold`, prompt is on, a name is set, and `meta:lowDayPrompted !== today`. An inline card below Save reads "Let {name} know you're having a rough day?" with [Send message] [Not now]. Either button records `lowDayPrompted = today`. The message contains only the mood score.
+
+**Share my week:** a button in the mood chart card. It covers the last 7 days including today:
+```
+My week in Steady (Sep 23–29)
+▄▃▂▃▅_▄  avg 4.8 · 6 of 7 days checked in
+Lowest: 3 (Thu)
+Mood 1–10 · _ = no check-in
+```
+Bars are `▁▂▃▄▅▆▇█`, with index `round((mood-1)/9*7)`. When the week spans two months the range shows both months (`Sep 28–Oct 4`). With no check-ins in the window, the toast says "No check-ins in the last 7 days to share." Only mood scores and check-in days are included. The message goes to the support person's number if one is set, otherwise to the share sheet.
+
+Nothing is ever sent without a tap, and Steady still makes no network requests.
+
+**Pure functions (tested):** `normalizeSupport`, `shouldPromptLowDay`, `fillMessage`, `smsLink`, `weekSummary`, `serializeBackup(state, now, settings?)`, `parseBackupSettings(text)`.
+
+## Phase B (planned, not built): live mood-only sharing
+
+The app would upload an end-to-end-encrypted record `{date, mood}` after each check-in to a small store (a Netlify Function plus Netlify Blobs or similar). The key lives only in the URL fragment of the friend's link, so the server stores ciphertext only. The friend gets a view page with the chart, and a daily scheduled function sends Web Push alerts to the friend for "no check-in for N days" or "mood ≤ threshold twice in a row". Phase B would reuse the Phase A settings (name, threshold, mood-only scope). It needs a CSP `connect-src` exception for that one endpoint, VAPID keys, and friend opt-in to notifications.
