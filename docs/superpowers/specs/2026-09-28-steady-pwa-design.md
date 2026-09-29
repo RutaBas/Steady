@@ -170,3 +170,26 @@ The backup nudge moves from the Mood tab to Today. No streaks and no missed-day 
 **Settings:** the header button becomes a gear labelled "Settings", and the sheet is titled "Settings". An Appearance control (Auto / Light / Dark) sits first. The choice is stored per device in localStorage `steady-theme` and applied before first paint by a classic script `js/theme.js` in `<head>`, which sets `data-theme` and both theme-color metas. It is not part of backups.
 
 **Pure functions (tested):** `greeting(hour)`, `weekSeries(mood, todayIso)` (7 values or null, also used by `weekSummary`), `todayStatus(state, todayIso)`.
+
+---
+
+# Addendum (2026-09-29): custom "Today I…" chips and the Joy jar
+
+## Custom chips
+- Chips are stored in `meta:chips` as `[{label, since}]`, where `since` is the date the chip was added. Up to 8 chips, each 1–40 characters, labels unique ignoring case. Chips are included in backups as `settings.chips`.
+- Mood entries gain an optional `custom: [label]` field. Older entries without it are read as `[]`. Removing a chip never rewrites history. When an entry is re-saved, labels on it that aren't current chips are kept.
+- UI: "+ Add your own" opens an inline input. "Edit" puts custom chips into remove mode, with an inline confirmation for each removal.
+- Insight: `on days with “{label}”`. It uses only entries dated on or after `since`, and needs ≥3 days with and ≥3 without.
+
+## Joy jar
+- IndexedDB moves to version 2 with a new object store `joy` (keyPath `id`). Items are `{id, type: "photo"|"note"|"link", title, text, url, created, photo?: Blob}`.
+- Photos are chosen with `<input type=file accept="image/*">`, which on iOS gives a JPEG. The image is drawn to a canvas scaled to fit 1600px and re-encoded with `toBlob("image/jpeg", 0.82)`, which also drops EXIF data including location.
+- Links must be http(s). A bare domain gets `https://` added in front. Any other scheme is rejected. Links open with `target=_blank rel="noopener noreferrer"`. There are no link previews.
+- UI:
+  - The Today tab gets a Joy jar card with a count, up to 3 photo thumbnails, [Open Joy jar] and [Show me something good].
+  - The "Heavy / low" reply adds "See something that made you smile" when the jar isn't empty.
+  - The Joy jar view is `#joy`, not in the tab bar (Today stays highlighted). It has add buttons (Photo / Note / Link), inline add forms, and a 2-column grid.
+  - Tapping an item opens a detail sheet with the full photo, text, link and Delete (inline confirmation). A random pick adds "Another one", which avoids showing the same item twice in a row.
+- Backups: the file export includes `joy: [...]`, with photos as `data:image/jpeg;base64,…`. The file is prepared when Settings opens, so the iOS share call still runs directly from the tap. On restore, a backup with a `joy` array replaces the jar, and a backup without one keeps the current jar. The text fallback leaves the jar out, and says so. "Delete all" also empties the jar, and its warning says so.
+- Validation on import (`parseBackupJoy`): the item type must be known, the URL must be http(s), photo data URLs must match `^data:image/(jpeg|png|webp);base64,`, text lengths are capped, and at most 1000 items are accepted.
+- Pure functions (tested): `normalizeChips`, `addChip`, `customInsights`, `safeUrl`, `parseBackupJoy`, `pickJoy`, and `serializeBackup(state, now, settings, joy)`.

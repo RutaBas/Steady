@@ -1,23 +1,28 @@
-/* On-device storage: IndexedDB "steady" / store "kv".
-   Key "state" holds {mood, thoughts, triangles, activities}; keys "meta:<name>" hold small values. */
+/* On-device storage: IndexedDB "steady".
+   Store "kv": key "state" holds {mood, thoughts, triangles, activities}; keys "meta:<name>" hold small values.
+   Store "joy" (added in DB version 2): Joy jar items keyed by id, photos stored as Blobs. */
 import { blank, normalizeState, countEntries } from "./logic.js";
 
-const DB_NAME = "steady", STORE = "kv", LEGACY_KEY = "steady-notebook-v1";
+const DB_NAME = "steady", STORE = "kv", JOY = "joy", LEGACY_KEY = "steady-notebook-v1";
 let dbp;
 
 function db() {
   return dbp ||= new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    const req = indexedDB.open(DB_NAME, 2);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+      if (!d.objectStoreNames.contains(JOY)) d.createObjectStore(JOY, { keyPath: "id" });
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-function tx(mode, fn) {
+function tx(mode, fn, store = STORE) {
   return db().then(d => new Promise((resolve, reject) => {
-    const t = d.transaction(STORE, mode);
-    const req = fn(t.objectStore(STORE));
+    const t = d.transaction(store, mode);
+    const req = fn(t.objectStore(store));
     t.oncomplete = () => resolve(req?.result);
     t.onerror = t.onabort = () => reject(t.error);
   }));
@@ -64,4 +69,18 @@ export async function setMeta(name, value) {
 export async function requestPersist() {
   try { return navigator.storage?.persist ? await navigator.storage.persist() : false; }
   catch { return false; }
+}
+
+/* ---------- Joy jar ---------- */
+
+export async function listJoy() {
+  const items = (await tx("readonly", s => s.getAll(), JOY)) || [];
+  return items.sort((a, b) => (a.created < b.created ? 1 : -1));
+}
+export const putJoy = item => tx("readwrite", s => s.put(item), JOY);
+export const deleteJoy = id => tx("readwrite", s => s.delete(id), JOY);
+
+/* Replace the whole jar in one transaction (restore / delete all). */
+export function replaceJoy(items) {
+  return tx("readwrite", s => { s.clear(); for (const it of items) s.put(it); }, JOY);
 }

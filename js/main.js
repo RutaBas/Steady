@@ -9,9 +9,11 @@ import * as activities from "./activities.js";
 import * as backup from "./backup.js";
 import * as support from "./support.js";
 import * as todayTab from "./today.js";
+import * as chips from "./chips.js";
+import * as joy from "./joy.js";
 
-const TABS = ["today", "mood", "thought", "tri", "act"];
-const sheets = [todayTab, mood, thoughts, triangle, activities];
+const TABS = ["today", "joy", "mood", "thought", "tri", "act"];
+const sheets = [todayTab, joy, mood, thoughts, triangle, activities];
 let state;
 
 const ctx = {
@@ -29,6 +31,12 @@ const ctx = {
   setSupport: s => support.set(s),
   afterMoodSave: e => support.afterMoodSave(e),
   showTab: name => showTab(name),
+  getChips: () => chips.get(),
+  setChips: list => chips.set(list),
+  joyCount: () => joy.count(),
+  openJoyRandom: () => joy.openRandom(),
+  joyExport: () => joy.exportItems(),
+  joyReplace: list => joy.replaceAll(list),
 };
 
 function renderAll() { sheets.forEach(s => s.render()); }
@@ -38,7 +46,8 @@ function setTodayLabel() {
 }
 
 function showTab(name) {
-  document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === name; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+  const navName = name === "joy" ? "today" : name; // the Joy jar opens from Today
+  document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === navName; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
   if (name === "today") todayTab.render(); // status may have changed on another tab
   window.scrollTo(0, 0);
@@ -104,7 +113,7 @@ function registerSW() {
 async function boot() {
   setTodayLabel();
   state = await loadState();
-  await support.load();
+  await Promise.all([support.load(), chips.load(), joy.load()]);
   wireRanges();
   sheets.forEach(s => s.init(ctx));
   backup.init(ctx);

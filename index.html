@@ -66,6 +66,13 @@
       <div id="todayWeek"></div>
     </div>
 
+    <div class="card" id="joyCard">
+      <div class="actions spread"><h3>Joy jar</h3><span class="hint" id="joyCount"></span></div>
+      <p class="lede flush" id="joyLede">Save photos, notes and links that make you smile, for the days you need them.</p>
+      <div class="joy-peek" id="joyPeek"></div>
+      <div class="actions"><button type="button" class="btn small" id="joyOpen">Open Joy jar</button><button type="button" class="btn ghost small" id="joyRandom" hidden>Show me something good</button></div>
+    </div>
+
     <div class="field"><span class="lbl">Your worksheets</span>
       <div class="sheets">
         <button type="button" class="sheetcard" data-go="mood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 5-7 4 4"/></svg><span><b>Mood check-in</b><small>30 seconds to notice how today is going</small></span></button>
@@ -74,6 +81,30 @@
         <button type="button" class="sheetcard" data-go="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span><b>Activity log</b><small>Notice what lifts you, even a little</small></span></button>
       </div>
     </div>
+  </section>
+
+  <!-- JOY JAR (opened from Today; not in the tab bar) -->
+  <section class="tab" id="tab-joy" role="tabpanel" aria-label="Joy jar" hidden>
+    <div class="actions"><button type="button" class="btn ghost small" id="joyBack">‹ Today</button></div>
+    <div>
+      <h2>Joy jar</h2>
+      <p class="lede">Things that make you smile: happy memories, kind words, songs, places. Everything stays on this phone.</p>
+    </div>
+    <div class="joy-add">
+      <label class="btn" for="joyFile">+ Photo</label>
+      <input type="file" id="joyFile" class="visually-hidden" accept="image/*">
+      <button type="button" class="btn ghost" id="joyAddNote">+ Note</button>
+      <button type="button" class="btn ghost" id="joyAddLink">+ Link</button>
+    </div>
+    <div class="card" id="joyForm" hidden>
+      <h3 id="joyFormTitle">Add</h3>
+      <img class="joy-preview" id="joyPreview" alt="" hidden>
+      <div class="field" id="joyUrlField" hidden><label for="joyUrl">Link</label><input type="url" id="joyUrl" inputmode="url" autocomplete="off" placeholder="https://…"></div>
+      <div class="field"><label for="joyTitle" id="joyTitleLbl">Caption</label><input type="text" id="joyTitle" maxlength="120" autocomplete="off"></div>
+      <div class="field" id="joyTextField"><label for="joyText" id="joyTextLbl">Why it makes you smile <span class="hint">(optional)</span></label><textarea id="joyText" maxlength="5000"></textarea></div>
+      <div class="actions"><button type="button" class="btn" id="joySave">Save to jar</button><button type="button" class="btn ghost" id="joyCancel">Cancel</button></div>
+    </div>
+    <div class="joy-grid" id="joyGrid"></div>
   </section>
 
   <!-- MOOD -->
@@ -98,10 +129,22 @@
       </div>
       <div class="field">
         <span class="lbl">Today I…</span>
-        <div class="chips">
+        <div class="chips" id="m-chips">
           <button type="button" class="chip" id="m-moved" aria-pressed="false">moved my body</button>
           <button type="button" class="chip" id="m-talked" aria-pressed="false">talked with someone</button>
           <button type="button" class="chip" id="m-enjoyed" aria-pressed="false">did something enjoyable</button>
+          <span class="chips-custom" id="m-custom"></span>
+          <button type="button" class="chip add" id="m-chipAdd">+ Add your own</button>
+        </div>
+        <button type="button" class="linkbtn chip-edit" id="m-chipEdit" hidden>Edit my options</button>
+        <div class="chip-form" id="m-chipForm" hidden>
+          <label for="m-chipText" class="visually-hidden">Something you did</label>
+          <input type="text" id="m-chipText" maxlength="40" placeholder="e.g. played guitar, called Mom" autocomplete="off" enterkeyhint="done">
+          <div class="actions"><button type="button" class="btn small" id="m-chipSave">Add</button><button type="button" class="btn ghost small" id="m-chipCancel">Cancel</button></div>
+        </div>
+        <div class="confirm" id="m-chipAsk" hidden>
+          <span class="hint" id="m-chipAskText"></span>
+          <div class="actions"><button type="button" class="btn danger small" id="m-chipAskYes">Remove</button><button type="button" class="btn ghost small" id="m-chipAskNo">Keep</button></div>
         </div>
       </div>
       <div class="field"><label for="m-note">Note <span class="hint">(optional)</span></label><input type="text" id="m-note" placeholder="Anything that stood out today"></div>
@@ -254,7 +297,7 @@
     <details class="guide">
       <summary>Backup as text (fallback)</summary>
       <div class="gbody">
-        <p class="hint">If file export doesn't work, copy the backup as text and paste it into your notes app. To restore, paste it back here.</p>
+        <p class="hint">If file export doesn't work, copy the backup as text and paste it into your notes app. To restore, paste it back here. The text backup doesn't include your Joy jar (photos are too big to paste), so use <b>Export backup file</b> for that.</p>
         <div class="actions"><button class="btn ghost small" id="copyBackup" type="button">Copy backup text</button></div>
         <div class="field"><label for="backupText">Backup text</label><textarea id="backupText" class="backup-text" placeholder="Tap Copy backup text, or paste a backup here to restore it"></textarea></div>
         <div class="actions"><button class="btn ghost small" id="restore" type="button">Restore from pasted backup</button></div>
@@ -312,6 +355,15 @@
     <hr>
     <div class="actions" id="wipeRow"><button class="btn danger small" id="wipe" type="button">Delete all entries</button></div>
     <p class="crisis">If you're in crisis or feel unsafe, <a href="tel:988">call</a> or <a href="sms:988">text</a> <b>988</b> any time.</p>
+  </div>
+</div>
+
+<div class="sheet-bg" id="joyView" hidden>
+  <div class="sheet joy-sheet" role="dialog" aria-modal="true" aria-labelledby="joyViewTitle">
+    <div class="actions spread"><h2 id="joyViewTitle">Joy jar</h2><button class="btn ghost small" id="joyViewClose" type="button">Close</button></div>
+    <div id="joyViewBody" class="joy-body"></div>
+    <div class="actions" id="joyViewActions"><button type="button" class="btn ghost small" id="joyAnother" hidden>Another one</button></div>
+    <div class="actions" id="joyDelRow"></div>
   </div>
 </div>
 

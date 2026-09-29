@@ -33,6 +33,12 @@ function choose(key) {
   const row = document.createElement("div"); row.className = "actions";
   r.buttons.forEach(([label, tab, style]) => row.append(goBtn(label, tab, style)));
   reply.append(p, row);
+  if (key === "low" && ctx.joyCount() > 0) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn ghost small start"; b.textContent = "See something that made you smile";
+    b.onclick = () => ctx.openJoyRandom();
+    reply.append(b);
+  }
   if (r.crisis) {
     const h = document.createElement("span"); h.className = "hint";
     h.innerHTML = 'If you feel unsafe, <a href="tel:988">call</a> or <a href="sms:988">text</a> 988 any time.';

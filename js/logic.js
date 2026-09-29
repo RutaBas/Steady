@@ -17,18 +17,27 @@ export function normalizeState(obj) {
   return s;
 }
 
-/* settings (optional): {support} — restored alongside the entries. */
-export function serializeBackup(state, now = new Date(), settings) {
+/* settings (optional): {support, chips}; joy (optional): Joy jar items with photos as data URLs.
+   All are restored alongside the entries. */
+export function serializeBackup(state, now = new Date(), settings, joy) {
   const o = { app: "steady", v: 1, saved: now.toISOString(), data: normalizeState(state) };
-  if (settings?.support) o.settings = { support: normalizeSupport(settings.support) };
+  const set = {};
+  if (settings?.support) set.support = normalizeSupport(settings.support);
+  if (settings?.chips) set.chips = normalizeChips(settings.chips);
+  if (Object.keys(set).length) o.settings = set;
+  if (Array.isArray(joy)) o.joy = joy;
   return JSON.stringify(o);
 }
 
 /* The optional settings block of a backup, or null (older backups and bare pastes have none). */
 export function parseBackupSettings(text) {
   try {
-    const o = JSON.parse(text);
-    return o?.settings?.support ? { support: normalizeSupport(o.settings.support) } : null;
+    const st = JSON.parse(text)?.settings;
+    if (!st || typeof st !== "object") return null;
+    const out = {};
+    if (st.support) out.support = normalizeSupport(st.support);
+    if (Array.isArray(st.chips)) out.chips = normalizeChips(st.chips);
+    return Object.keys(out).length ? out : null;
   } catch { return null; }
 }
 
@@ -191,4 +200,91 @@ export function weekSeries(mood, todayIso) {
 export function todayStatus(state, todayIso) {
   const e = state.mood.find(m => m.date === todayIso);
   return { checkedIn: !!e, mood: e ? e.mood : null, activities: state.activities.filter(a => a.date === todayIso).length };
+}
+
+/* ---------- Custom "Today I…" chips ---------- */
+
+export const MAX_CHIPS = 8, MAX_CHIP_LEN = 40;
+const BUILT_IN_CHIPS = ACTIVITY_FLAGS.map(([, label]) => label.replace(/\byour\b/, "my"));
+const sameLabel = (a, b) => a.toLowerCase() === b.toLowerCase();
+
+export function normalizeChips(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const c of list) {
+    if (!c || typeof c !== "object" || typeof c.label !== "string") continue;
+    const label = c.label.trim().slice(0, MAX_CHIP_LEN);
+    if (!label || out.some(x => sameLabel(x.label, label))) continue;
+    const since = /^\d{4}-\d{2}-\d{2}$/.test(c.since) ? c.since : "1970-01-01";
+    out.push({ label, since });
+    if (out.length === MAX_CHIPS) break;
+  }
+  return out;
+}
+
+export function addChip(chips, raw, todayIso) {
+  const label = String(raw ?? "").trim();
+  if (!label) return { error: "Type what you did first." };
+  if (label.length > MAX_CHIP_LEN) return { error: `Keep it under ${MAX_CHIP_LEN} characters.` };
+  if (chips.some(c => sameLabel(c.label, label)) || BUILT_IN_CHIPS.some(b => sameLabel(b, label))) return { error: "You already have that one." };
+  if (chips.length >= MAX_CHIPS) return { error: `You can have up to ${MAX_CHIPS} of your own.` };
+  return { chips: [...chips, { label, since: todayIso }] };
+}
+
+/* Mood on days with vs. without each custom chip, counting only days since the chip was added. */
+export function customInsights(mood, chips) {
+  const out = [];
+  for (const c of chips) {
+    const span = mood.filter(x => x.date >= c.since);
+    const has = x => (x.custom || []).some(l => sameLabel(l, c.label));
+    const a = span.filter(has).map(x => x.mood), b = span.filter(x => !has(x)).map(x => x.mood);
+    if (a.length >= MIN_GROUP && b.length >= MIN_GROUP) {
+      const withAvg = avg(a), withoutAvg = avg(b);
+      out.push({ label: c.label, diff: withAvg - withoutAvg, withAvg, withoutAvg });
+    }
+  }
+  return out;
+}
+
+/* ---------- Joy jar ---------- */
+
+/* http(s) links only; a bare domain gets https:// in front. Anything else (javascript:, data:, …) is rejected. */
+export function safeUrl(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return null;
+  const withScheme = /^[a-z][a-z\d+.-]*:/i.test(t) ? t : (/^[\w-]+(\.[\w-]+)+([/?#]|$)/.test(t) ? "https://" + t : null);
+  if (!withScheme) return null;
+  try {
+    const u = new URL(withScheme);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.href : null;
+  } catch { return null; }
+}
+
+const JOY_TYPES = ["photo", "note", "link"], PHOTO_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+
+/* Joy jar items from a backup (photos as data URLs), sanitized; null if the backup has no jar. */
+export function parseBackupJoy(text) {
+  let o;
+  try { o = JSON.parse(text); } catch { return null; }
+  if (!o || !Array.isArray(o.joy)) return null;
+  const out = [];
+  for (const it of o.joy.slice(0, 1000)) {
+    if (!it || typeof it !== "object" || !JOY_TYPES.includes(it.type)) continue;
+    const item = {
+      id: typeof it.id === "string" && it.id ? it.id.slice(0, 40) : Math.random().toString(36).slice(2),
+      type: it.type, title: str(it.title, 120), text: str(it.text, 5000), url: "",
+      created: typeof it.created === "string" && !Number.isNaN(Date.parse(it.created)) ? it.created : new Date(0).toISOString(),
+    };
+    if (it.type === "link") { item.url = safeUrl(it.url); if (!item.url) continue; }
+    if (it.type === "photo") { if (typeof it.photo !== "string" || !PHOTO_RE.test(it.photo)) continue; item.photo = it.photo; }
+    out.push(item);
+  }
+  return out;
+}
+
+/* A random item, avoiding the one just shown when there is a choice. */
+export function pickJoy(items, lastId, rand = Math.random) {
+  if (!items.length) return null;
+  const pool = items.length > 1 ? items.filter(i => i.id !== lastId) : items;
+  return pool[Math.min(pool.length - 1, Math.floor(rand() * pool.length))];
 }

@@ -2,7 +2,7 @@
 
 A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a gentle "How are you arriving?" question that points you to the right worksheet, today's status with a mini chart of your week, and cards for the four worksheets:
 
-- **Mood check-in**: mood 1–10, sleep, time outside, activity toggles and a note, with a chart and insights
+- **Mood check-in**: mood 1–10, sleep, time outside, "Today I…" toggles (add up to 8 of your own, like *played guitar*) and a note, with a chart and insights
 - **Thought record**: 7 steps, from the automatic thought to a balanced thought
 - **CBT triangle**: thoughts, behaviors and feelings, then one small thing to try
 - **Activity log**: pleasure and mastery ratings, plus your top activities from the last 7 days
@@ -61,6 +61,14 @@ Tap the **gear** (top right) → **Appearance**. **Auto** follows your iPhone's 
 
 iOS can delete a web app's stored data, for example if you don't open it for several weeks or storage runs low. Export a backup regularly; the app reminds you when it has been more than 14 days. To restore, open the same sheet, tap **Import from file**, and pick the `steady-backup-….json` file. Restoring replaces everything on the device after you confirm. If file export ever fails, use **Backup as text (fallback)** and paste the text into Notes.
 
+## Joy jar
+
+Open it from the **Today** screen. Save **photos**, **notes** and **links** that make you smile: happy memories, kind words, a song that helps. On a hard day, **Show me something good** (or "See something that made you smile" under *Heavy / low*) shows one at random.
+
+- Photos are shrunk to 1600 px on your phone before saving (about 300 KB each), and their hidden location data is removed. Steady keeps its own copy; it can't link to your Photos library.
+- Links must be web links (https://…) and open in Safari.
+- Everything stays on your phone and is included in **Export backup file**. The text backup doesn't include the Joy jar, and restoring one leaves your jar as it is.
+
 ## Optional: a support person
 
 In **Settings** (the gear), under **Support person**, you can add someone you trust: a name, and optionally a phone number.
@@ -89,6 +97,8 @@ css/app.css             styles (light + dark themes, safe areas)
 js/main.js              boot, tabs, appearance control, service worker registration
 js/theme.js             applies Auto/Light/Dark before first paint
 js/today.js             Today tab: greeting, "How are you arriving?", status, week mini chart
+js/chips.js             your own "Today I…" options
+js/joy.js               Joy jar: add/view/delete photos, notes, links; photo shrinking; backup conversion
 js/logic.js             pure logic (insights, backup format, Health clipboard parsing), unit-tested
 js/store.js             IndexedDB storage + one-time migration from the prototype's localStorage
 js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows)

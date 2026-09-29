@@ -1,6 +1,7 @@
 /* Mood check-in: 1–10 scale, sleep, outside, activity toggles, note; chart + insights + history. */
-import { iso, parseIso, today, activityInsights, sleepInsight, parseHealthClipboard } from "./logic.js";
+import { iso, parseIso, today, activityInsights, sleepInsight, customInsights, parseHealthClipboard } from "./logic.js";
 import { $, esc, fmt, uid, toast, toggle, isOn, setOn, entry, emptyMsg } from "./ui.js";
+import * as chips from "./chips.js";
 
 let ctx, moodVal = null, chartDays = 28;
 const scale = () => $("m-scale");
@@ -14,6 +15,7 @@ export function init(c) {
     scale().append(b);
   }
   ["m-moved", "m-talked", "m-enjoyed"].forEach(id => toggle($(id)));
+  chips.init(() => renderChart());
   $("m-date").value = today();
   $("m-date").addEventListener("change", loadForm);
   $("m-save").onclick = save;
@@ -31,6 +33,7 @@ function loadForm() {
   [...scale().children].forEach(c => c.setAttribute("aria-pressed", !!e && +c.textContent === e.mood));
   $("m-sleep").value = e?.sleep ?? ""; $("m-outside").value = e?.outside ?? ""; $("m-note").value = e?.note ?? "";
   setOn("m-moved", e?.moved); setOn("m-talked", e?.talked); setOn("m-enjoyed", e?.enjoyed);
+  chips.setPressed(e?.custom);
   $("m-save").textContent = e ? "Update check-in" : "Save check-in";
 }
 
@@ -43,6 +46,9 @@ async function save() {
   const rec = { id: uid(), date, mood: moodVal, sleep: num("m-sleep"), outside: num("m-outside"),
     moved: isOn("m-moved"), talked: isOn("m-talked"), enjoyed: isOn("m-enjoyed"), note: $("m-note").value.trim() };
   const i = S.mood.findIndex(m => m.date === date), upd = i >= 0;
+  // Keep labels from chips you've since removed; the form only shows current chips.
+  const current = new Set(chips.get().map(c => c.label));
+  rec.custom = [...chips.pressedLabels(), ...(upd ? (S.mood[i].custom || []).filter(l => !current.has(l)) : [])];
   if (upd) S.mood[i] = rec; else S.mood.push(rec);
   S.mood.sort((a, b) => (a.date < b.date ? 1 : -1));
   if (await ctx.persist()) toast(upd ? "Check-in updated" : "Check-in saved");
@@ -115,6 +121,7 @@ function renderChart() {
   const sl = sleepInsight(S.mood);
   if (sl) rows.push(`<div class="insight"><b>${sign(sl.diff)}</b><span>on days after 7+ hours of sleep (${sl.withAvg.toFixed(1)} vs ${sl.withoutAvg.toFixed(1)})</span></div>`);
   for (const r of activityInsights(S.mood)) rows.push(`<div class="insight"><b>${sign(r.diff)}</b><span>on days you ${esc(r.label)} (${r.withAvg.toFixed(1)} vs ${r.withoutAvg.toFixed(1)})</span></div>`);
+  for (const r of customInsights(S.mood, chips.get())) rows.push(`<div class="insight"><b>${sign(r.diff)}</b><span>on days with “${esc(r.label)}” (${r.withAvg.toFixed(1)} vs ${r.withoutAvg.toFixed(1)})</span></div>`);
   if (S.mood.length < 10 && rows.length < 2) rows.push(`<p class="lede flush">Patterns show up here once you have a few check-ins with and without each activity.</p>`);
   ins.innerHTML = rows.join("");
 }
@@ -126,7 +133,7 @@ export function render() {
   L.replaceChildren();
   if (!S.mood.length) return emptyMsg(L, "Your check-ins will appear here.");
   S.mood.slice(0, 60).forEach(m => {
-    const did = [m.moved && "moved", m.talked && "talked with someone", m.enjoyed && "did something enjoyable"].filter(Boolean).join(", ");
+    const did = [m.moved && "moved", m.talked && "talked with someone", m.enjoyed && "did something enjoyable", ...(m.custom || [])].filter(Boolean).join(", ");
     L.append(entry(m.date, m.note || did || "Check-in", "Mood " + m.mood,
       [["Hours slept", m.sleep ?? ""], ["Minutes outside", m.outside ?? ""], ["Did", did], ["Note", m.note]],
       async () => { ctx.state.mood = ctx.state.mood.filter(x => x.id !== m.id); if (await ctx.persist()) toast("Deleted"); render(); }));

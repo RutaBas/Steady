@@ -1,9 +1,9 @@
 /* Backup & settings sheet: export/import file, text fallback, delete all, last-backup nudge, guides. */
-import { serializeBackup, parseBackup, parseBackupSettings, blank, countEntries, daysSince, today } from "./logic.js";
+import { serializeBackup, parseBackup, parseBackupSettings, parseBackupJoy, blank, countEntries, daysSince, today } from "./logic.js";
 import { getMeta, setMeta } from "./store.js";
 import { $, toast } from "./ui.js";
 
-let ctx, pending = null, pendingSettings = null, lastFocus = null;
+let ctx, pending = null, pendingSettings = null, pendingJoy = null, prepared = null, lastFocus = null;
 const NUDGE_DAYS = 14, NUDGE_MIN_ENTRIES = 5;
 
 export function init(c) {
@@ -25,6 +25,7 @@ export function init(c) {
 export async function openSheet(sectionId) {
   lastFocus = document.activeElement;
   counts();
+  prepareExport();
   await showLastBackup();
   $("sheet").hidden = false;
   document.body.style.overflow = "hidden";
@@ -45,10 +46,11 @@ function closeSheet() {
 }
 
 function counts() {
-  const S = ctx.state;
+  const S = ctx.state, j = ctx.joyCount();
   const n = (k, one, many) => `${S[k].length} ${S[k].length === 1 ? one : many}`;
   $("counts").textContent = [n("mood", "check-in", "check-ins"), n("thoughts", "thought record", "thought records"),
-    n("triangles", "triangle", "triangles"), n("activities", "activity", "activities")].join(" · ");
+    n("triangles", "triangle", "triangles"), n("activities", "activity", "activities"),
+    `${j} Joy jar ${j === 1 ? "item" : "items"}`].join(" · ");
 }
 
 async function showLastBackup() {
@@ -74,14 +76,28 @@ async function markBackedUp() {
 }
 
 /* Web Share with a file opens the iOS share sheet (Save to Files, AirDrop, Notes…). Falls back to a download. */
-/* Include the support person (if set) so a restore brings them back. */
-const backupText = () => {
-  const support = ctx.getSupport();
-  return serializeBackup(ctx.state, new Date(), support.name ? { support } : undefined);
+/* Settings travel with the entries so a restore brings them back. joy: Joy jar items (file export only). */
+const backupText = joy => {
+  const support = ctx.getSupport(), chips = ctx.getChips(), settings = {};
+  if (support.name) settings.support = support;
+  if (chips.length) settings.chips = chips;
+  return serializeBackup(ctx.state, new Date(), settings, joy);
 };
 
+/* Photos have to be converted before the tap: iOS only opens the share sheet straight from a user gesture. */
+function prepareExport() {
+  prepared = null;
+  const b = $("exportFile");
+  b.disabled = true; b.textContent = "Preparing backup…";
+  ctx.joyExport()
+    .then(joy => { prepared = backupText(joy); })
+    .catch(() => { prepared = backupText(); toast("Couldn't include Joy jar photos in this backup."); })
+    .finally(() => { b.disabled = false; b.textContent = "Export backup file"; });
+}
+
 async function exportFile() {
-  const text = backupText(), name = `steady-backup-${today()}.json`;
+  if (!prepared) { toast("Still preparing your backup. Try again in a moment."); return; }
+  const text = prepared, name = `steady-backup-${today()}.json`;
   let file = null;
   try { file = new File([text], name, { type: "application/json" }); } catch { /* old browsers */ }
   if (file && navigator.canShare?.({ files: [file] })) {
@@ -118,8 +134,11 @@ function stageRestore(text) {
   const have = countEntries(ctx.state), incoming = countEntries(data);
   pending = data;
   pendingSettings = parseBackupSettings(text);
-  if (have === 0) { applyPending(); return; }
-  $("importConfirmText").textContent = `Replace the ${have} entr${have === 1 ? "y" : "ies"} on this device with ${incoming} from the backup? This can't be undone.`;
+  pendingJoy = parseBackupJoy(text);
+  const jarHave = ctx.joyCount();
+  if (have === 0 && (pendingJoy == null || jarHave === 0)) { applyPending(); return; }
+  const jarNote = pendingJoy == null ? "" : ` Your Joy jar (${jarHave}) will be replaced with ${pendingJoy.length} from the backup.`;
+  $("importConfirmText").textContent = `Replace the ${have} entr${have === 1 ? "y" : "ies"} on this device with ${incoming} from the backup?${jarNote} This can't be undone.`;
   $("importConfirm").hidden = false;
   $("importNo").focus();
 }
@@ -127,17 +146,22 @@ function stageRestore(text) {
 async function applyPending() {
   if (!pending) return;
   ctx.state = pending;
-  const settings = pendingSettings;
-  pending = pendingSettings = null;
+  const settings = pendingSettings, joy = pendingJoy;
+  pending = pendingSettings = pendingJoy = null;
   $("importConfirm").hidden = true;
-  if (settings) await ctx.setSupport(settings.support);
+  if (settings?.support) await ctx.setSupport(settings.support);
+  if (settings?.chips) await ctx.setChips(settings.chips);
+  let jarOk = true;
+  if (joy) { try { await ctx.joyReplace(joy); } catch { jarOk = false; } }
   const ok = await ctx.persist();
   ctx.renderAll();
   counts();
+  prepareExport();
+  if (!jarOk) toast("Entries restored, but the Joy jar didn't fit. Your phone may be low on space.");
   if (ok) toast("Backup restored");
 }
 
-function cancelPending() { pending = pendingSettings = null; $("importConfirm").hidden = true; }
+function cancelPending() { pending = pendingSettings = pendingJoy = null; $("importConfirm").hidden = true; }
 
 async function copyText() {
   const txt = backupText(), ta = $("backupText");
@@ -160,11 +184,12 @@ function resetWipe() {
 
 function askWipe() {
   const r = $("wipeRow");
-  r.innerHTML = '<span class="hint">This deletes everything on this device.</span><button class="btn danger small" id="wipeYes" type="button">Delete everything</button><button class="btn ghost small" id="wipeNo" type="button">Cancel</button>';
+  r.innerHTML = '<span class="hint">This deletes all entries and your Joy jar on this device.</span><button class="btn danger small" id="wipeYes" type="button">Delete everything</button><button class="btn ghost small" id="wipeNo" type="button">Cancel</button>';
   $("wipeYes").onclick = async () => {
     ctx.state = blank();
+    try { await ctx.joyReplace([]); } catch { /* entries still cleared */ }
     const ok = await ctx.persist();
-    ctx.renderAll(); counts(); resetWipe();
+    ctx.renderAll(); counts(); resetWipe(); prepareExport();
     if (ok) toast("All entries deleted");
   };
   $("wipeNo").onclick = resetWipe;
