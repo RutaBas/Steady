@@ -137,9 +137,10 @@ Web Push reminders, direct Oura API, native app, accounts, sync between devices,
 **Share my week:** a button in the mood chart card. It covers the last 7 days including today:
 ```
 My week in Steady (Sep 23–29)
-▄▃▂▃▅_▄  avg 4.8 · 6 of 7 days checked in
-Lowest: 3 (Thu)
-Mood 1–10 · _ = no check-in
+▄▃▃▃▅_▄  avg 4.5 · 6 of 7 days checked in
+Daily: 5 4 3 4 6 – 5
+Lowest: 3 (Fri)
+Mood 1–10 · _ or – = no check-in
 ```
 Bars are `▁▂▃▄▅▆▇█`, with index `round((mood-1)/9*7)`. When the week spans two months the range shows both months (`Sep 28–Oct 4`). With no check-ins in the window, the toast says "No check-ins in the last 7 days to share." Only mood scores and check-in days are included. The message goes to the support person's number if one is set, otherwise to the share sheet.
 

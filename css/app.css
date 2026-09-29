@@ -51,7 +51,7 @@ section.tab{display:flex;flex-direction:column;gap:16px;padding-top:8px}
 .field label,.lbl{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .hint{font-size:.8rem;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
 /* 16px inputs stop iOS Safari from zooming the page on focus */
-input[type=text],input[type=date],input[type=number],textarea,select{
+input[type=text],input[type=tel],input[type=date],input[type=number],textarea,select{
   font:inherit;font-size:16px;color:var(--fg);background:var(--sunk);border:1px solid transparent;border-radius:10px;padding:10px 12px;width:100%;min-width:0;min-height:var(--tap);-webkit-appearance:none;appearance:none}
 input[type=date]{display:block}
 select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
@@ -156,5 +156,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-
 .guide .gbody{padding:0 14px 14px;font-size:.88rem;display:flex;flex-direction:column;gap:8px}
 .guide ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
 .guide code{font-size:.82rem;background:var(--sunk);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
+.lowday{display:flex;flex-direction:column;gap:8px;background:var(--accent-soft);border-radius:12px;padding:12px 14px}
+.lowday a{color:var(--fg);font-weight:600}
 .confirm{display:flex;flex-direction:column;gap:8px;background:var(--sunk);border-radius:10px;padding:10px 12px}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

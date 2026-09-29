@@ -70,6 +70,11 @@
       </div>
       <div class="field"><label for="m-note">Note <span class="hint">(optional)</span></label><input type="text" id="m-note" placeholder="Anything that stood out today"></div>
       <div class="actions"><button class="btn" id="m-save" type="button">Save check-in</button></div>
+      <div class="lowday" id="lowDay" role="status" hidden>
+        <span id="lowDayText">Let them know you're having a rough day?</span>
+        <div class="actions"><button class="btn small" id="lowDaySend" type="button">Send message</button><button class="btn ghost small" id="lowDayNo" type="button">Not now</button></div>
+        <span class="hint">Only your mood score is shared. In an emergency, <a href="tel:988">call</a> or <a href="sms:988">text</a> 988.</span>
+      </div>
     </div>
 
     <div class="card">
@@ -83,6 +88,7 @@
       </div>
       <div class="chartbox" id="chart"></div>
       <div class="insights" id="insights" aria-live="polite"></div>
+      <div class="actions"><button class="btn ghost small" id="shareWeek" type="button">Share my week</button><span class="hint">Mood scores only</span></div>
     </div>
 
     <div class="field"><span class="lbl">Past check-ins</span><div class="list" id="m-list"></div></div>
@@ -206,6 +212,20 @@
         <div class="actions"><button class="btn ghost small" id="restore" type="button">Restore from pasted backup</button></div>
       </div>
     </details>
+
+    <hr>
+    <h3 id="supportTitle">Support person</h3>
+    <p class="hint">Someone you trust who can check in on you. Steady never sends anything by itself: every message needs your tap, and only your mood score is shared, never your notes.</p>
+    <div class="field"><label for="s-name">Their name</label><input type="text" id="s-name" autocomplete="off" placeholder="e.g. Ana"></div>
+    <div class="field"><label for="s-phone">Phone number <span class="hint">(optional)</span></label><input type="tel" id="s-phone" inputmode="tel" autocomplete="off" placeholder="+1 555 123 4567">
+      <span class="hint">With a number, messages open straight in Messages. Without one, you choose an app each time.</span></div>
+    <div class="field"><span class="lbl">On low days</span>
+      <div class="chips"><button type="button" class="chip" id="s-prompt" aria-pressed="true">Offer to message them</button></div>
+      <label class="hint" for="s-threshold">when my mood is</label>
+      <select id="s-threshold"><option value="2">2 or lower</option><option value="3">3 or lower</option><option value="4">4 or lower</option></select></div>
+    <div class="field"><label for="s-message">Message</label><textarea id="s-message"></textarea><span class="hint"><code>{mood}</code> becomes your score.</span></div>
+    <p class="note" id="s-note">Your support person isn't a crisis service and may not see a message right away. In an emergency, call or text <b>988</b>.</p>
+    <div class="actions" id="supportRow"><button class="btn small" id="s-save" type="button">Save support person</button></div>
 
     <hr>
     <h3>Reminders &amp; sleep</h3>

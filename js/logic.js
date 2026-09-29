@@ -17,8 +17,19 @@ export function normalizeState(obj) {
   return s;
 }
 
-export function serializeBackup(state, now = new Date()) {
-  return JSON.stringify({ app: "steady", v: 1, saved: now.toISOString(), data: normalizeState(state) });
+/* settings (optional): {support} — restored alongside the entries. */
+export function serializeBackup(state, now = new Date(), settings) {
+  const o = { app: "steady", v: 1, saved: now.toISOString(), data: normalizeState(state) };
+  if (settings?.support) o.settings = { support: normalizeSupport(settings.support) };
+  return JSON.stringify(o);
+}
+
+/* The optional settings block of a backup, or null (older backups and bare pastes have none). */
+export function parseBackupSettings(text) {
+  try {
+    const o = JSON.parse(text);
+    return o?.settings?.support ? { support: normalizeSupport(o.settings.support) } : null;
+  } catch { return null; }
 }
 
 /* Accepts the wrapped backup format or a bare state object (prototype-era pastes). */
@@ -100,4 +111,64 @@ export function daysSince(isoString, now = new Date()) {
   const t = Date.parse(isoString);
   if (Number.isNaN(t)) return null;
   return Math.floor((now.getTime() - t) / 86400000);
+}
+
+/* ---------- Support person (share mood with a friend) ---------- */
+
+export const DEFAULT_SUPPORT = Object.freeze({
+  name: "", phone: "", threshold: 3, prompt: true,
+  message: "Rough day today (mood {mood}/10). Could you check in on me?",
+});
+
+const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+export function normalizeSupport(o) {
+  if (!o || typeof o !== "object") return { ...DEFAULT_SUPPORT };
+  const t = Math.round(Number(o.threshold));
+  return {
+    name: str(o.name, 60),
+    phone: str(o.phone, 30),
+    threshold: Number.isFinite(t) ? Math.min(4, Math.max(2, t)) : DEFAULT_SUPPORT.threshold,
+    prompt: o.prompt !== false,
+    message: str(o.message, 500) || DEFAULT_SUPPORT.message,
+  };
+}
+
+/* Offer "Let {name} know?" only for today's low check-in, once per day, when a support person is set. */
+export function shouldPromptLowDay(entry, support, promptedDate, todayIso) {
+  return !!(entry && support?.prompt && support.name && entry.date === todayIso &&
+    entry.mood <= support.threshold && promptedDate !== todayIso);
+}
+
+export const fillMessage = (template, mood) => (template || DEFAULT_SUPPORT.message).replaceAll("{mood}", String(mood));
+
+/* iOS Messages link. Returns null when there is no usable number (caller falls back to the share sheet). */
+export function smsLink(phone, body) {
+  const p = String(phone || "").replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
+  if (!/\d{3,}/.test(p)) return null;
+  return `sms:${p}&body=${encodeURIComponent(body)}`;
+}
+
+const BARS = "▁▂▃▄▅▆▇█";
+
+/* Plain-text summary of the last 7 days (today inclusive): mood scores only. Null if no check-ins. */
+export function weekSummary(mood, todayIso, locale) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(todayIso, i - 6));
+  const byDate = Object.fromEntries(mood.map(m => [m.date, m.mood]));
+  const vals = days.map(d => byDate[d] ?? null);
+  const got = vals.filter(v => v != null);
+  if (!got.length) return null;
+  const first = parseIso(days[0]), last = parseIso(days[6]);
+  const md = d => d.toLocaleDateString(locale, { month: "short", day: "numeric" });
+  const range = first.getMonth() === last.getMonth() ? `${md(first)}–${last.getDate()}` : `${md(first)}–${md(last)}`;
+  const bars = vals.map(v => (v == null ? "_" : BARS[Math.round((v - 1) / 9 * 7)])).join("");
+  const avgVal = (got.reduce((s, v) => s + v, 0) / got.length).toFixed(1);
+  const low = Math.min(...got), lowDay = parseIso(days[vals.indexOf(low)]).toLocaleDateString(locale, { weekday: "short" });
+  return [
+    `My week in Steady (${range})`,
+    `${bars}  avg ${avgVal} · ${got.length} of 7 days checked in`,
+    `Daily: ${vals.map(v => (v == null ? "–" : v)).join(" ")}`,
+    `Lowest: ${low} (${lowDay})`,
+    "Mood 1–10 · _ or – = no check-in",
+  ].join("\n");
 }

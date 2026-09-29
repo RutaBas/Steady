@@ -47,6 +47,7 @@ async function save() {
   S.mood.sort((a, b) => (a.date < b.date ? 1 : -1));
   if (await ctx.persist()) toast(upd ? "Check-in updated" : "Check-in saved");
   render();
+  ctx.afterMoodSave(rec);
 }
 
 async function fillFromHealth() {

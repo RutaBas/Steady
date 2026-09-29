@@ -7,6 +7,7 @@ import * as thoughts from "./thoughts.js";
 import * as triangle from "./triangle.js";
 import * as activities from "./activities.js";
 import * as backup from "./backup.js";
+import * as support from "./support.js";
 
 const TAB_KEY = "steady-notebook-v1-tab", TABS = ["mood", "thought", "tri", "act"];
 const sheets = [mood, thoughts, triangle, activities];
@@ -23,6 +24,9 @@ const ctx = {
   },
   renderAll,
   openSheet: id => backup.openSheet(id),
+  getSupport: () => support.get(),
+  setSupport: s => support.set(s),
+  afterMoodSave: e => support.afterMoodSave(e),
 };
 
 function renderAll() { sheets.forEach(s => s.render()); }
@@ -91,9 +95,11 @@ function registerSW() {
 async function boot() {
   setTodayLabel();
   state = await loadState();
+  await support.load();
   wireRanges();
   sheets.forEach(s => s.init(ctx));
   backup.init(ctx);
+  support.init(ctx);
   initTabs();
   renderAll();
   backup.updateNudge();

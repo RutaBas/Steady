@@ -57,6 +57,16 @@ When you change any app file, bump `VERSION` in `sw.js` (for example `steady-v1`
 
 iOS can delete a web app's stored data, for example if you don't open it for several weeks or storage runs low. Export a backup regularly; the app reminds you when it has been more than 14 days. To restore, open the same sheet, tap **Import from file**, and pick the `steady-backup-….json` file. Restoring replaces everything on the device after you confirm. If file export ever fails, use **Backup as text (fallback)** and paste the text into Notes.
 
+## Optional: a support person
+
+In the backup sheet, under **Support person**, you can add someone you trust: a name, and optionally a phone number.
+
+- **Low-day prompt:** when today's mood is at or below your threshold (3 by default), a card offers **"Let Ana know?"**. **Send message** opens Messages to their number, or the share sheet if you didn't add one, with a short message containing only your mood score. It appears at most once a day.
+- **Share my week:** a button under the mood chart sends a text summary of the last 7 days (bars, daily scores, average, lowest day). It contains mood scores only: no notes, sleep or worksheets.
+- Nothing is ever sent without your tap, and Steady still makes no network requests. The support person is saved on your phone and included in backups.
+
+Your support person isn't a crisis service and may not see a message right away. In an emergency, call or text **988**.
+
 ## Optional: evening reminder and sleep from Apple Health / Oura
 
 Web apps can't read Apple Health or schedule notifications without a server, so Steady uses iOS Shortcuts instead. Nothing leaves your phone. The full step-by-step guides are in the app, in the backup sheet under **Reminders & sleep**. In short:
@@ -78,6 +88,7 @@ js/store.js             IndexedDB storage + one-time migration from the prototyp
 js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows)
 js/mood.js, thoughts.js, triangle.js, activities.js   one module per worksheet
 js/backup.js            backup sheet: export/import, text fallback, delete all, guides
+js/support.js           support person: low-day prompt, Share my week
 sw.js                   offline cache (bump VERSION on every release)
 manifest.webmanifest    install metadata
 fonts/                  self-hosted Bricolage Grotesque + Lexend (SIL Open Font License)

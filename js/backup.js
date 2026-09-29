@@ -1,9 +1,9 @@
 /* Backup & settings sheet: export/import file, text fallback, delete all, last-backup nudge, guides. */
-import { serializeBackup, parseBackup, blank, countEntries, daysSince, today } from "./logic.js";
+import { serializeBackup, parseBackup, parseBackupSettings, blank, countEntries, daysSince, today } from "./logic.js";
 import { getMeta, setMeta } from "./store.js";
 import { $, toast } from "./ui.js";
 
-let ctx, pending = null, lastFocus = null;
+let ctx, pending = null, pendingSettings = null, lastFocus = null;
 const NUDGE_DAYS = 14, NUDGE_MIN_ENTRIES = 5;
 
 export function init(c) {
@@ -74,8 +74,14 @@ async function markBackedUp() {
 }
 
 /* Web Share with a file opens the iOS share sheet (Save to Files, AirDrop, Notes…). Falls back to a download. */
+/* Include the support person (if set) so a restore brings them back. */
+const backupText = () => {
+  const support = ctx.getSupport();
+  return serializeBackup(ctx.state, new Date(), support.name ? { support } : undefined);
+};
+
 async function exportFile() {
-  const text = serializeBackup(ctx.state), name = `steady-backup-${today()}.json`;
+  const text = backupText(), name = `steady-backup-${today()}.json`;
   let file = null;
   try { file = new File([text], name, { type: "application/json" }); } catch { /* old browsers */ }
   if (file && navigator.canShare?.({ files: [file] })) {
@@ -110,8 +116,9 @@ function stageRestore(text) {
   try { data = parseBackup(text); }
   catch { toast("That doesn't look like a Steady backup. Check the file or paste the full text."); return; }
   const have = countEntries(ctx.state), incoming = countEntries(data);
-  if (have === 0) { pending = data; applyPending(); return; }
   pending = data;
+  pendingSettings = parseBackupSettings(text);
+  if (have === 0) { applyPending(); return; }
   $("importConfirmText").textContent = `Replace the ${have} entr${have === 1 ? "y" : "ies"} on this device with ${incoming} from the backup? This can't be undone.`;
   $("importConfirm").hidden = false;
   $("importNo").focus();
@@ -120,18 +127,20 @@ function stageRestore(text) {
 async function applyPending() {
   if (!pending) return;
   ctx.state = pending;
-  pending = null;
+  const settings = pendingSettings;
+  pending = pendingSettings = null;
   $("importConfirm").hidden = true;
+  if (settings) await ctx.setSupport(settings.support);
   const ok = await ctx.persist();
   ctx.renderAll();
   counts();
   if (ok) toast("Backup restored");
 }
 
-function cancelPending() { pending = null; $("importConfirm").hidden = true; }
+function cancelPending() { pending = pendingSettings = null; $("importConfirm").hidden = true; }
 
 async function copyText() {
-  const txt = serializeBackup(ctx.state), ta = $("backupText");
+  const txt = backupText(), ta = $("backupText");
   ta.value = txt;
   try {
     await navigator.clipboard.writeText(txt);
