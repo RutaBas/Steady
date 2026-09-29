@@ -1,4 +1,11 @@
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Personal files: never commit
 *.pdf
+claude-code-handover.md
+
+# Steady backups contain your entries: never commit
+steady-backup-*.json
+*.json.bak
