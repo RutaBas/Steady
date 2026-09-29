@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steady</title>
+<meta name="description" content="Private CBT worksheets: mood check-in, thought record, CBT triangle and activity log. Everything stays on your device.">
+<meta name="theme-color" content="#EEF2F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121A19" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Steady">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<link rel="preload" href="fonts/lexend-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<div class="banner updatebar" id="updateBar" role="status" hidden>
+  <span>A new version of Steady is ready.</span>
+  <button class="btn small" id="updateReload" type="button">Reload</button>
+</div>
+
+<main class="wrap">
+  <header class="top">
+    <div class="brand">Steady<small id="todayLabel"></small></div>
+    <button class="iconbtn" id="openSettings" type="button" aria-label="Backup and settings" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>
+    </button>
+  </header>
+
+  <!-- MOOD -->
+  <section class="tab" id="tab-mood" role="tabpanel" aria-label="Mood">
+    <div class="banner" id="backupNudge" hidden>
+      <span id="backupNudgeText">It's been a while since your last backup.</span>
+      <button class="btn small" id="backupNudgeBtn" type="button">Back up now</button>
+    </div>
+    <div class="card">
+      <div>
+        <h2>How's your mood today?</h2>
+        <p class="lede">A 30-second check-in. Saving again on the same date updates that day.</p>
+      </div>
+      <div class="field"><label for="m-date">Date</label><input type="date" id="m-date"></div>
+      <div class="field">
+        <span class="lbl">Mood</span>
+        <div class="scale" id="m-scale" role="group" aria-label="Mood from 1 to 10"></div>
+        <div class="scale-ends"><span>1 · lowest</span><span>10 · best</span></div>
+      </div>
+      <div class="row">
+        <div class="field sleep-field"><label for="m-sleep">Hours slept</label>
+          <input type="number" id="m-sleep" inputmode="decimal" min="0" max="24" step="0.1" placeholder="7">
+          <button type="button" class="btn ghost small" id="m-health">Fill from Health</button>
+        </div>
+        <div class="field"><label for="m-outside">Minutes outside</label><input type="number" id="m-outside" inputmode="numeric" min="0" step="5" placeholder="20"></div>
+      </div>
+      <div class="field">
+        <span class="lbl">Today I…</span>
+        <div class="chips">
+          <button type="button" class="chip" id="m-moved" aria-pressed="false">moved my body</button>
+          <button type="button" class="chip" id="m-talked" aria-pressed="false">talked with someone</button>
+          <button type="button" class="chip" id="m-enjoyed" aria-pressed="false">did something enjoyable</button>
+        </div>
+      </div>
+      <div class="field"><label for="m-note">Note <span class="hint">(optional)</span></label><input type="text" id="m-note" placeholder="Anything that stood out today"></div>
+      <div class="actions"><button class="btn" id="m-save" type="button">Save check-in</button></div>
+    </div>
+
+    <div class="card">
+      <div class="actions spread">
+        <h3>Your mood over time</h3>
+        <div class="seg" id="m-range" role="group" aria-label="Chart range">
+          <button type="button" data-days="14" aria-pressed="false">2 wk</button>
+          <button type="button" data-days="28" aria-pressed="true">4 wk</button>
+          <button type="button" data-days="90" aria-pressed="false">3 mo</button>
+        </div>
+      </div>
+      <div class="chartbox" id="chart"></div>
+      <div class="insights" id="insights" aria-live="polite"></div>
+    </div>
+
+    <div class="field"><span class="lbl">Past check-ins</span><div class="list" id="m-list"></div></div>
+  </section>
+
+  <!-- THOUGHT RECORD -->
+  <section class="tab" id="tab-thought" role="tabpanel" aria-label="Thought record" hidden>
+    <div class="card">
+      <div>
+        <h2>Thought record</h2>
+        <p class="lede">When your mood drops, ask: what was just going through my mind? The first three steps alone help.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div class="field"><label for="t-sit">Situation</label><textarea id="t-sit" placeholder="Where were you? What happened?"></textarea></div></div>
+        <div class="step"><span class="n">2</span><div class="field"><label for="t-thought">Automatic thought</label><textarea id="t-thought" placeholder="What went through your mind?"></textarea>
+          <span class="hint" id="t-belief-l">How much do you believe it?</span>
+          <div class="range"><input type="range" id="t-belief" min="0" max="100" step="5" value="70" aria-labelledby="t-belief-l"><output for="t-belief">70%</output></div></div></div>
+        <div class="step"><span class="n">3</span><div class="field"><label for="t-emo">Emotion</label><input type="text" id="t-emo" placeholder="e.g. sad, anxious, ashamed">
+          <span class="hint" id="t-emoInt-l">How intense?</span>
+          <div class="range"><input type="range" id="t-emoInt" min="0" max="100" step="5" value="70" aria-labelledby="t-emoInt-l"><output for="t-emoInt">70%</output></div></div></div>
+        <div class="step"><span class="n">4</span><div class="field"><label for="t-for">Evidence for</label><textarea id="t-for" placeholder="Facts that support the thought"></textarea></div></div>
+        <div class="step"><span class="n">5</span><div class="field"><label for="t-against">Evidence against</label><textarea id="t-against" placeholder="Facts that don't fit. What would you tell a friend?"></textarea></div></div>
+        <div class="step"><span class="n">6</span><div class="field"><label for="t-bal">Balanced thought</label><textarea id="t-bal" placeholder="A fairer, more complete view"></textarea>
+          <span class="hint" id="t-balBelief-l">How much do you believe it?</span>
+          <div class="range"><input type="range" id="t-balBelief" min="0" max="100" step="5" value="50" aria-labelledby="t-balBelief-l"><output for="t-balBelief">50%</output></div></div></div>
+        <div class="step"><span class="n">7</span><div class="field"><span class="lbl">Emotion now</span>
+          <div class="range"><input type="range" id="t-emoNow" min="0" max="100" step="5" value="50" aria-label="Emotion intensity now"><output for="t-emoNow">50%</output></div></div></div>
+      </div>
+      <div class="actions"><button class="btn" id="t-save" type="button">Save thought record</button><button class="btn ghost" id="t-clear" type="button">Clear</button></div>
+    </div>
+    <div class="field"><span class="lbl">Past thought records</span><div class="list" id="t-list"></div></div>
+  </section>
+
+  <!-- TRIANGLE -->
+  <section class="tab" id="tab-tri" role="tabpanel" aria-label="CBT triangle" hidden>
+    <div class="card">
+      <div>
+        <h2>CBT triangle</h2>
+        <p class="lede">Thoughts, feelings and behaviors feed each other. Map a recent low moment, then choose one corner to change.</p>
+      </div>
+      <div class="field"><label for="g-sit">Situation</label><input type="text" id="g-sit" placeholder="What was happening?"></div>
+      <div class="tri">
+        <div class="node t"><label for="g-t">Thoughts</label><textarea id="g-t" placeholder="What went through my mind?"></textarea></div>
+        <div class="node b"><label for="g-b">Behaviors</label><textarea id="g-b" placeholder="What did I do, or avoid?"></textarea></div>
+        <div class="node f"><label for="g-f">Feelings</label><textarea id="g-f" placeholder="Emotions and body sensations"></textarea></div>
+      </div>
+      <div class="field"><span class="lbl">Corner I'll try changing</span>
+        <div class="chips" id="g-corner">
+          <button type="button" class="chip" data-v="Thoughts" aria-pressed="false">Thoughts</button>
+          <button type="button" class="chip" data-v="Behaviors" aria-pressed="false">Behaviors</button>
+          <button type="button" class="chip" data-v="Feelings" aria-pressed="false">Feelings</button>
+        </div>
+        <span class="hint" id="g-tip" aria-live="polite">Behaviors is often the easiest place to start when energy is low.</span>
+      </div>
+      <div class="field"><label for="g-act">One small thing I'll try</label><input type="text" id="g-act" placeholder="e.g. work on it for 10 minutes"></div>
+      <div class="field"><label for="g-after">What happened afterward? <span class="hint">(fill in later if you like)</span></label><textarea id="g-after"></textarea></div>
+      <div class="actions"><button class="btn" id="g-save" type="button">Save triangle</button><button class="btn ghost" id="g-clear" type="button">Clear</button></div>
+    </div>
+    <div class="field"><span class="lbl">Past triangles</span><div class="list" id="g-list"></div></div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section class="tab" id="tab-act" role="tabpanel" aria-label="Activity log" hidden>
+    <div class="card">
+      <div>
+        <h2>Activity log</h2>
+        <p class="lede">Log what you did, even rest or scrolling. Rate pleasure and mastery (a sense of accomplishment) from 0 to 10.</p>
+      </div>
+      <div class="row">
+        <div class="field"><label for="a-date">Date</label><input type="date" id="a-date"></div>
+        <div class="field"><label for="a-block">Time</label><select id="a-block"></select></div>
+      </div>
+      <div class="field"><label for="a-what">What I did</label><input type="text" id="a-what" placeholder="e.g. walk by the lake"></div>
+      <div class="field"><label for="a-p">Pleasure</label><div class="range"><input type="range" id="a-p" min="0" max="10" value="5"><output for="a-p">5</output></div></div>
+      <div class="field"><label for="a-m">Mastery</label><div class="range"><input type="range" id="a-m" min="0" max="10" value="5"><output for="a-m">5</output></div></div>
+      <div class="actions"><button class="btn" id="a-save" type="button">Add activity</button></div>
+    </div>
+    <div class="card">
+      <h3>What's been lifting you</h3>
+      <p class="lede flush">Your highest-scoring activities from the last 7 days. Try scheduling more of these.</p>
+      <div class="list" id="a-top"></div>
+    </div>
+    <div class="field"><span class="lbl" id="a-daylabel">Logged for this day</span><div class="list" id="a-list"></div></div>
+  </section>
+
+  <p class="crisis">If you're in crisis or feel unsafe, <a href="tel:988">call</a> or <a href="sms:988">text</a> <b>988</b> any time.</p>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Worksheets">
+  <div class="inner">
+    <button type="button" role="tab" data-tab="mood" aria-controls="tab-mood" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 5-7 4 4"/></svg>Mood</button>
+    <button type="button" role="tab" data-tab="thought" aria-controls="tab-thought" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Thoughts</button>
+    <button type="button" role="tab" data-tab="tri" aria-controls="tab-tri" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M11 7l-5 9M13 7l5 9M7.3 18h9.4"/></svg>Triangle</button>
+    <button type="button" role="tab" data-tab="act" aria-controls="tab-act" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Activities</button>
+  </div>
+</nav>
+
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="actions spread"><h2 id="sheetTitle">Backup &amp; settings</h2><button class="btn ghost small" id="closeSettings" type="button">Done</button></div>
+
+    <p class="note">Your entries are saved <b>only on this device</b>. Nobody else can see them. But iOS can clear a web app's data, for example if you don't open it for a few weeks or your phone runs low on space. <b>Export a backup regularly</b> and keep it in Files, iCloud Drive or your notes.</p>
+    <p class="hint" id="lastBackup"></p>
+    <div class="actions">
+      <button class="btn" id="exportFile" type="button">Export backup file</button>
+      <label class="btn ghost" for="importFile">Import from file</label>
+      <input type="file" id="importFile" class="visually-hidden" accept=".json,application/json,text/plain">
+    </div>
+    <span class="hint" id="counts"></span>
+    <div class="confirm" id="importConfirm" hidden>
+      <span class="hint" id="importConfirmText"></span>
+      <div class="actions"><button class="btn danger small" id="importYes" type="button">Replace my entries</button><button class="btn ghost small" id="importNo" type="button">Cancel</button></div>
+    </div>
+
+    <details class="guide">
+      <summary>Backup as text (fallback)</summary>
+      <div class="gbody">
+        <p class="hint">If file export doesn't work, copy the backup as text and paste it into your notes app. To restore, paste it back here.</p>
+        <div class="actions"><button class="btn ghost small" id="copyBackup" type="button">Copy backup text</button></div>
+        <div class="field"><label for="backupText">Backup text</label><textarea id="backupText" class="backup-text" placeholder="Tap Copy backup text, or paste a backup here to restore it"></textarea></div>
+        <div class="actions"><button class="btn ghost small" id="restore" type="button">Restore from pasted backup</button></div>
+      </div>
+    </details>
+
+    <hr>
+    <h3>Reminders &amp; sleep</h3>
+
+    <details class="guide" id="reminderGuide">
+      <summary>Set up a gentle evening reminder</summary>
+      <div class="gbody">
+        <p class="hint">Steady doesn't send notifications itself, so nothing leaves your phone. iOS Shortcuts can nudge you instead.</p>
+        <ol>
+          <li>Open the <b>Shortcuts</b> app → <b>Automation</b> tab → <b>+</b> (or <b>New Automation</b>).</li>
+          <li>Choose <b>Time of Day</b>, pick a time such as 8:00 pm, set <b>Repeat: Daily</b>, and choose <b>Run Immediately</b>.</li>
+          <li>Tap <b>New Blank Automation</b>. Add <b>Run Shortcut</b> → <b>Steady sleep</b> (set up below), or just add <b>Show Notification</b> with text such as <code>How's your mood today?</code>.</li>
+          <li>When the nudge arrives, open <b>Steady</b> from your Home Screen.</li>
+        </ol>
+      </div>
+    </details>
+
+    <details class="guide" id="healthGuide">
+      <summary>Fill sleep from Apple Health or Oura</summary>
+      <div class="gbody">
+        <p class="hint">Web apps can't read Apple Health directly. A small Shortcut reads last night's sleep and copies it, then <b>Fill from Health</b> pastes it in. Using Oura? Turn on Oura app → Settings → <b>Apple Health</b> so your Oura sleep lands in Health.</p>
+        <ol>
+          <li>In <b>Shortcuts</b>, tap <b>+</b> and name the shortcut <b>Steady sleep</b>.</li>
+          <li>Add <b>Find Health Samples</b>: Type <b>Sleep</b> (Sleep Analysis). Add filters <b>End Date is in the last 1 day</b>, and <b>Value is not In Bed</b> and <b>Value is not Awake</b>.</li>
+          <li>Add <b>Get Details of Health Samples</b> → <b>Duration</b>.</li>
+          <li>Add <b>Calculate Statistics</b> → <b>Sum</b>. Then add <b>Calculate</b> → Statistics Result <b>÷ 3600</b> (turns seconds into hours). Then add <b>Round Number</b> → <b>Tenths</b>.</li>
+          <li>Add <b>Format Date</b> → Current Date, Custom format <code>yyyy-MM-dd</code>.</li>
+          <li>Add <b>Text</b>: <code>steady-sleep:</code> Formatted Date <code>:</code> Rounded Number, with no spaces. It should look like <code>steady-sleep:2026-09-28:7.2</code>.</li>
+          <li>Add <b>Copy to Clipboard</b>, then <b>Show Notification</b> with <code>Sleep copied. Open Steady to check in.</code></li>
+          <li>Run it once and allow Health access. Then in Steady, tap <b>Fill from Health</b> and <b>Paste</b>.</li>
+        </ol>
+        <p class="hint">If Duration shows minutes rather than seconds, divide by 60 instead of 3600. Nothing is saved until you tap Save check-in.</p>
+      </div>
+    </details>
+
+    <hr>
+    <div class="actions" id="wipeRow"><button class="btn danger small" id="wipe" type="button">Delete all entries</button></div>
+    <p class="crisis">If you're in crisis or feel unsafe, <a href="tel:988">call</a> or <a href="sms:988">text</a> <b>988</b> any time.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
