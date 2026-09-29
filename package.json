@@ -1,0 +1,10 @@
+{
+  "name": "steady",
+  "private": true,
+  "type": "module",
+  "description": "Private CBT worksheet PWA. No runtime dependencies.",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "serve": "node scripts/serve.mjs"
+  }
+}
