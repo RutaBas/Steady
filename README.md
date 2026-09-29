@@ -114,3 +114,7 @@ tests/                  node --test unit tests
 ```
 
 Data shape (also the backup format's `data` field): `{mood:[], thoughts:[], triangles:[], activities:[]}`.
+
+## License
+
+Code: [MIT](LICENSE). The bundled fonts in `fonts/` (Bricolage Grotesque, Lexend) are under the SIL Open Font License; see the `OFL-*.txt` files there.
