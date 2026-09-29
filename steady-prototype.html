@@ -1,0 +1,471 @@
+<title>Steady Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Lexend:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: one-column phone notebook, four worksheets behind a bottom tab bar; each tab = a form card on top, past entries below */
+:root{
+  --bg:#EEF2F1; --surface:#FFFFFF; --sunk:#E2EAE8; --line:#C9D6D3;
+  --fg:#1C2928; --muted:#5E716E; --accent:#2F6F6A; --accent-ink:#FFFFFF; --accent-soft:#D5E8E4;
+  --warm:#B5763A; --danger:#A8433A;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121A19; --surface:#1A2524; --sunk:#223130; --line:#2F4240;
+  --fg:#E4EDEB; --muted:#93A8A4; --accent:#6FB8AE; --accent-ink:#0E1716; --accent-soft:#1F3A37;
+  --warm:#D9A06A; --danger:#E08A80; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121A19; --surface:#1A2524; --sunk:#223130; --line:#2F4240;
+  --fg:#E4EDEB; --muted:#93A8A4; --accent:#6FB8AE; --accent-ink:#0E1716; --accent-soft:#1F3A37;
+  --warm:#D9A06A; --danger:#E08A80; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;font-weight:400}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:8px calc(96px + env(safe-area-inset-bottom,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 6px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.55rem;letter-spacing:-.01em}
+.brand small{display:block;font-family:var(--f-body);font-weight:400;font-size:.78rem;color:var(--muted);letter-spacing:0}
+.iconbtn{background:var(--surface);border:1px solid var(--line);color:var(--fg);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;cursor:pointer}
+.iconbtn svg{width:20px;height:20px}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.25rem;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:1.02rem;margin:0}
+.lede{color:var(--muted);font-size:.88rem;margin:4px 0 0}
+section.tab{display:flex;flex-direction:column;gap:16px;padding-top:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.lbl{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.hint{font-size:.8rem;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+input[type=text],input[type=date],input[type=number],textarea,select{
+  font:inherit;color:var(--fg);background:var(--sunk);border:1px solid transparent;border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:64px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>.field{flex:1 1 130px}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;accent-color:var(--accent)}
+.range output{font-variant-numeric:tabular-nums;font-weight:600;min-width:3.2em;text-align:right}
+.scale{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.scale button{font:inherit;font-weight:500;padding:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;font-variant-numeric:tabular-nums}
+.scale button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.scale-ends{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.88rem;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--fg)}
+.chip[aria-pressed=true]::before{content:"✓ ";color:var(--accent);font-weight:600}
+.btn{font:inherit;font-weight:500;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn.small{padding:7px 12px;font-size:.85rem;border-radius:10px}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;z-index:30;transition:opacity .25s}
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.step .n{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.85rem;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.step .field{min-width:0}
+/* history */
+.list{display:flex;flex-direction:column;gap:8px}
+.entry{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
+.entry summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;gap:12px;align-items:center}
+.entry summary::-webkit-details-marker{display:none}
+.entry .date{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.entry .title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px;font-size:.9rem}
+.entry dl{margin:0;display:grid;gap:6px}
+.entry dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.entry dd{margin:0 0 4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.pill{font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.shift{font-size:.8rem;color:var(--accent);font-weight:500}
+.empty{color:var(--muted);font-size:.9rem;padding:14px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+/* chart */
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto}
+.example-tag{position:absolute;top:6px;right:8px;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--warm);background:var(--surface);padding:2px 8px;border:1px solid var(--warm);border-radius:999px}
+.insights{display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.insight{display:flex;gap:10px;align-items:baseline}
+.insight b{font-variant-numeric:tabular-nums}
+.seg{display:flex;background:var(--sunk);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;font:inherit;font-size:.85rem;border:0;border-radius:8px;padding:6px;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--fg);font-weight:500}
+/* triangle */
+.tri{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"t t" "b f";gap:10px;position:relative}
+.tri .node{background:var(--sunk);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tri .node.t{grid-area:t;width:min(100%,300px);justify-self:center}
+.tri .node.b{grid-area:b}.tri .node.f{grid-area:f}
+.tri .node label{color:var(--accent)}
+.tri textarea{background:var(--surface);min-height:70px}
+.tri-arrows{text-align:center;color:var(--accent);font-size:.8rem;margin:-4px 0}
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+nav.tabs .inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+nav.tabs button{font:inherit;font-size:.72rem;background:transparent;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:10px;cursor:pointer}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-soft);font-weight:500}
+.crisis{font-size:.8rem;color:var(--muted);text-align:center;padding:4px 8px}
+.crisis b{color:var(--fg)}
+/* settings sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.note{font-size:.85rem;color:var(--muted);background:var(--sunk);border-radius:10px;padding:10px 12px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Steady<small id="todayLabel"></small></div>
+    <button class="iconbtn" id="openSettings" aria-label="Backup and settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>
+    </button>
+  </header>
+
+  <!-- MOOD -->
+  <section class="tab" id="tab-mood" role="tabpanel">
+    <div class="card">
+      <div>
+        <h2>How's your mood today?</h2>
+        <p class="lede">A 30-second check-in. Saving again on the same date updates that day.</p>
+      </div>
+      <div class="field"><label for="m-date">Date</label><input type="date" id="m-date"></div>
+      <div class="field">
+        <span class="lbl">Mood</span>
+        <div class="scale" id="m-scale" role="group" aria-label="Mood from 1 to 10"></div>
+        <div class="scale-ends"><span>1 · lowest</span><span>10 · best</span></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="m-sleep">Hours slept</label><input type="number" id="m-sleep" inputmode="decimal" min="0" max="24" step="0.5" placeholder="7"></div>
+        <div class="field"><label for="m-outside">Minutes outside</label><input type="number" id="m-outside" inputmode="numeric" min="0" step="5" placeholder="20"></div>
+      </div>
+      <div class="field">
+        <span class="lbl">Today I…</span>
+        <div class="chips">
+          <button type="button" class="chip" id="m-moved" aria-pressed="false">moved my body</button>
+          <button type="button" class="chip" id="m-talked" aria-pressed="false">talked with someone</button>
+          <button type="button" class="chip" id="m-enjoyed" aria-pressed="false">did something enjoyable</button>
+        </div>
+      </div>
+      <div class="field"><label for="m-note">Note <span class="hint">(optional)</span></label><input type="text" id="m-note" placeholder="Anything that stood out today"></div>
+      <div class="actions"><button class="btn" id="m-save">Save check-in</button></div>
+    </div>
+
+    <div class="card">
+      <div class="actions" style="justify-content:space-between">
+        <h3>Your mood over time</h3>
+        <div class="seg" id="m-range" role="group" aria-label="Chart range">
+          <button type="button" data-days="14" aria-pressed="false">2 wk</button>
+          <button type="button" data-days="28" aria-pressed="true">4 wk</button>
+          <button type="button" data-days="90" aria-pressed="false">3 mo</button>
+        </div>
+      </div>
+      <div class="chartbox" id="chart"></div>
+      <div class="insights" id="insights"></div>
+    </div>
+
+    <div class="field"><span class="lbl">Past check-ins</span><div class="list" id="m-list"></div></div>
+  </section>
+
+  <!-- THOUGHT RECORD -->
+  <section class="tab" id="tab-thought" role="tabpanel" hidden>
+    <div class="card">
+      <div>
+        <h2>Thought record</h2>
+        <p class="lede">When your mood drops, ask: what was just going through my mind? The first three steps alone help.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div class="field"><label for="t-sit">Situation</label><textarea id="t-sit" placeholder="Where were you? What happened?"></textarea></div></div>
+        <div class="step"><span class="n">2</span><div class="field"><label for="t-thought">Automatic thought</label><textarea id="t-thought" placeholder="What went through your mind?"></textarea>
+          <span class="hint">How much do you believe it?</span>
+          <div class="range"><input type="range" id="t-belief" min="0" max="100" step="5" value="70"><output for="t-belief">70%</output></div></div></div>
+        <div class="step"><span class="n">3</span><div class="field"><label for="t-emo">Emotion</label><input type="text" id="t-emo" placeholder="e.g. sad, anxious, ashamed">
+          <span class="hint">How intense?</span>
+          <div class="range"><input type="range" id="t-emoInt" min="0" max="100" step="5" value="70"><output for="t-emoInt">70%</output></div></div></div>
+        <div class="step"><span class="n">4</span><div class="field"><label for="t-for">Evidence for</label><textarea id="t-for" placeholder="Facts that support the thought"></textarea></div></div>
+        <div class="step"><span class="n">5</span><div class="field"><label for="t-against">Evidence against</label><textarea id="t-against" placeholder="Facts that don't fit. What would you tell a friend?"></textarea></div></div>
+        <div class="step"><span class="n">6</span><div class="field"><label for="t-bal">Balanced thought</label><textarea id="t-bal" placeholder="A fairer, more complete view"></textarea>
+          <span class="hint">How much do you believe it?</span>
+          <div class="range"><input type="range" id="t-balBelief" min="0" max="100" step="5" value="50"><output for="t-balBelief">50%</output></div></div></div>
+        <div class="step"><span class="n">7</span><div class="field"><span class="lbl">Emotion now</span>
+          <div class="range"><input type="range" id="t-emoNow" min="0" max="100" step="5" value="50" aria-label="Emotion intensity now"><output for="t-emoNow">50%</output></div></div></div>
+      </div>
+      <div class="actions"><button class="btn" id="t-save">Save thought record</button><button class="btn ghost" id="t-clear">Clear</button></div>
+    </div>
+    <div class="field"><span class="lbl">Past thought records</span><div class="list" id="t-list"></div></div>
+  </section>
+
+  <!-- TRIANGLE -->
+  <section class="tab" id="tab-tri" role="tabpanel" hidden>
+    <div class="card">
+      <div>
+        <h2>CBT triangle</h2>
+        <p class="lede">Thoughts, feelings and behaviors feed each other. Map a recent low moment, then choose one corner to change.</p>
+      </div>
+      <div class="field"><label for="g-sit">Situation</label><input type="text" id="g-sit" placeholder="What was happening?"></div>
+      <div class="tri">
+        <div class="node t"><label for="g-t">Thoughts</label><textarea id="g-t" placeholder="What went through my mind?"></textarea></div>
+        <div class="node b"><label for="g-b">Behaviors</label><textarea id="g-b" placeholder="What did I do, or avoid?"></textarea></div>
+        <div class="node f"><label for="g-f">Feelings</label><textarea id="g-f" placeholder="Emotions and body sensations"></textarea></div>
+      </div>
+      <div class="field"><span class="lbl">Corner I'll try changing</span>
+        <div class="chips" id="g-corner">
+          <button type="button" class="chip" data-v="Thoughts" aria-pressed="false">Thoughts</button>
+          <button type="button" class="chip" data-v="Behaviors" aria-pressed="false">Behaviors</button>
+          <button type="button" class="chip" data-v="Feelings" aria-pressed="false">Feelings</button>
+        </div>
+        <span class="hint" id="g-tip">Behaviors is often the easiest place to start when energy is low.</span>
+      </div>
+      <div class="field"><label for="g-act">One small thing I'll try</label><input type="text" id="g-act" placeholder="e.g. work on it for 10 minutes"></div>
+      <div class="field"><label for="g-after">What happened afterward? <span class="hint">(fill in later if you like)</span></label><textarea id="g-after"></textarea></div>
+      <div class="actions"><button class="btn" id="g-save">Save triangle</button><button class="btn ghost" id="g-clear">Clear</button></div>
+    </div>
+    <div class="field"><span class="lbl">Past triangles</span><div class="list" id="g-list"></div></div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section class="tab" id="tab-act" role="tabpanel" hidden>
+    <div class="card">
+      <div>
+        <h2>Activity log</h2>
+        <p class="lede">Log what you did, even rest or scrolling. Rate pleasure and mastery (a sense of accomplishment) from 0 to 10.</p>
+      </div>
+      <div class="row">
+        <div class="field"><label for="a-date">Date</label><input type="date" id="a-date"></div>
+        <div class="field"><label for="a-block">Time</label><select id="a-block"></select></div>
+      </div>
+      <div class="field"><label for="a-what">What I did</label><input type="text" id="a-what" placeholder="e.g. walk by the lake"></div>
+      <div class="field"><label for="a-p">Pleasure</label><div class="range"><input type="range" id="a-p" min="0" max="10" value="5"><output for="a-p">5</output></div></div>
+      <div class="field"><label for="a-m">Mastery</label><div class="range"><input type="range" id="a-m" min="0" max="10" value="5"><output for="a-m">5</output></div></div>
+      <div class="actions"><button class="btn" id="a-save">Add activity</button></div>
+    </div>
+    <div class="card">
+      <h3>What's been lifting you</h3>
+      <p class="lede" style="margin:0">Your highest-scoring activities from the last 7 days. Try scheduling more of these.</p>
+      <div class="list" id="a-top"></div>
+    </div>
+    <div class="field"><span class="lbl" id="a-daylabel">Logged for this day</span><div class="list" id="a-list"></div></div>
+  </section>
+
+  <p class="crisis">If you're in crisis or feel unsafe, call or text <b>988</b> any time.</p>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Worksheets">
+  <div class="inner">
+    <button role="tab" data-tab="mood" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 5-7 4 4"/></svg>Mood</button>
+    <button role="tab" data-tab="thought" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Thoughts</button>
+    <button role="tab" data-tab="tri" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M11 7l-5 9M13 7l5 9M7.3 18h9.4"/></svg>Triangle</button>
+    <button role="tab" data-tab="act" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Activities</button>
+  </div>
+</nav>
+
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="actions" style="justify-content:space-between"><h2 id="sheetTitle">Backup</h2><button class="btn ghost small" id="closeSettings">Done</button></div>
+    <p class="note">Your entries are saved only in this browser on this device. Nobody else can see them, but they can be lost if browser data is cleared. Copy a backup now and then and keep it somewhere safe, like your notes app.</p>
+    <div class="actions"><button class="btn" id="copyBackup">Copy backup</button><span class="hint" id="counts"></span></div>
+    <div class="field"><label for="backupText">Backup text</label><textarea id="backupText" placeholder="Tap Copy backup, or paste a backup here to restore it" style="min-height:110px;font-size:.8rem"></textarea></div>
+    <div class="actions"><button class="btn ghost" id="restore">Restore from pasted backup</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    <div class="actions" id="wipeRow"><button class="btn danger small" id="wipe">Delete all entries</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const KEY="steady-notebook-v1";
+const blank=()=>({mood:[],thoughts:[],triangles:[],activities:[]});
+let S=blank();
+try{const raw=localStorage.getItem(KEY); if(raw){const d=JSON.parse(raw); S=Object.assign(blank(),d);}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){toast("Couldn't save on this device. Copy a backup to keep this entry.");return false}}
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>iso(new Date());
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const fmt=s=>parse(s).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let tTimer;function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(tTimer);tTimer=setTimeout(()=>t.hidden=true,2400)}
+$("todayLabel").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+
+/* tabs */
+const tabs=[...document.querySelectorAll("nav.tabs button")];
+function showTab(name){tabs.forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===name));
+  document.querySelectorAll("section.tab").forEach(s=>s.hidden=s.id!=="tab-"+name);
+  try{localStorage.setItem(KEY+"-tab",name)}catch(e){} window.scrollTo(0,0)}
+tabs.forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+let startTab="mood";try{startTab=localStorage.getItem(KEY+"-tab")||"mood"}catch(e){}
+const hash=location.hash.slice(1); if(["mood","thought","tri","act"].includes(hash))startTab=hash;
+showTab(startTab);
+
+/* ranges */
+document.querySelectorAll('input[type=range]').forEach(r=>{const o=r.parentElement.querySelector("output");
+  const upd=()=>o.textContent=r.value+(r.max==="100"?"%":"");r.addEventListener("input",upd);upd()});
+function setRange(id,v){const r=$(id);r.value=v;r.dispatchEvent(new Event("input"))}
+function toggle(btn){btn.addEventListener("click",()=>btn.setAttribute("aria-pressed",btn.getAttribute("aria-pressed")!=="true"))}
+const on=id=>$(id).getAttribute("aria-pressed")==="true";
+const setOn=(id,v)=>$(id).setAttribute("aria-pressed",!!v);
+
+/* delete control shared */
+function delButton(onDelete){
+  const wrap=document.createElement("div");wrap.className="actions";
+  const b=document.createElement("button");b.className="btn danger small";b.textContent="Delete";
+  b.onclick=()=>{wrap.innerHTML="";const q=document.createElement("span");q.className="hint";q.textContent="Delete this entry?";
+    const y=document.createElement("button");y.className="btn danger small";y.textContent="Yes, delete";y.onclick=onDelete;
+    const n=document.createElement("button");n.className="btn ghost small";n.textContent="Keep";n.onclick=()=>{wrap.replaceWith(delButton(onDelete))};
+    wrap.append(q,y,n)};
+  wrap.append(b);return wrap}
+function entry(date,title,pill,dl,onDelete,extra){
+  const d=document.createElement("details");d.className="entry";
+  d.innerHTML=`<summary><span class="date">${esc(fmt(date))}</span><span class="title">${esc(title)}</span>${pill?`<span class="pill">${esc(pill)}</span>`:""}</summary>
+  <div class="body"><dl>${dl.filter(([,v])=>v!==""&&v!=null).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div>`;
+  const body=d.querySelector(".body"); if(extra)body.append(extra); body.append(delButton(onDelete)); return d}
+function emptyMsg(el,msg){el.innerHTML=`<div class="empty">${esc(msg)}</div>`}
+
+/* ---------- MOOD ---------- */
+let moodVal=null;
+const scale=$("m-scale");
+for(let i=1;i<=10;i++){const b=document.createElement("button");b.type="button";b.textContent=i;b.setAttribute("aria-pressed","false");
+  b.onclick=()=>{moodVal=i;[...scale.children].forEach(c=>c.setAttribute("aria-pressed",+c.textContent===i))};scale.append(b)}
+["m-moved","m-talked","m-enjoyed"].forEach(id=>toggle($(id)));
+$("m-date").value=today();
+function loadMoodForm(){const e=S.mood.find(m=>m.date===$("m-date").value);
+  moodVal=e?e.mood:null;[...scale.children].forEach(c=>c.setAttribute("aria-pressed",e&&+c.textContent===e.mood));
+  $("m-sleep").value=e?.sleep??"";$("m-outside").value=e?.outside??"";$("m-note").value=e?.note??"";
+  setOn("m-moved",e?.moved);setOn("m-talked",e?.talked);setOn("m-enjoyed",e?.enjoyed);
+  $("m-save").textContent=e?"Update check-in":"Save check-in"}
+$("m-date").addEventListener("change",loadMoodForm);
+$("m-save").onclick=()=>{
+  if(!moodVal){toast("Pick a mood from 1 to 10 first");return}
+  const date=$("m-date").value||today();
+  const rec={id:uid(),date,mood:moodVal,sleep:$("m-sleep").value===""?null:+$("m-sleep").value,
+    outside:$("m-outside").value===""?null:+$("m-outside").value,moved:on("m-moved"),talked:on("m-talked"),enjoyed:on("m-enjoyed"),note:$("m-note").value.trim()};
+  const i=S.mood.findIndex(m=>m.date===date); const upd=i>=0; if(upd)S.mood[i]=rec;else S.mood.push(rec);
+  S.mood.sort((a,b)=>a.date<b.date?1:-1); if(save())toast(upd?"Check-in updated":"Check-in saved"); loadMoodForm(); renderMood()};
+let chartDays=28;
+document.querySelectorAll("#m-range button").forEach(b=>b.onclick=()=>{chartDays=+b.dataset.days;
+  document.querySelectorAll("#m-range button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderChart()});
+function sampleData(){const out=[];const base=[5,4,4,5,6,5,3,4,5,6,6,7,5,6];const t=new Date();
+  for(let i=13;i>=0;i--){const d=new Date(t);d.setDate(t.getDate()-i);out.push({date:iso(d),mood:base[13-i]})}return out}
+function renderChart(){
+  const box=$("chart"); const real=S.mood.length>=2; const data=real?S.mood:sampleData();
+  const days=real?chartDays:14; const W=520,H=220,L=30,R=12,T=14,B=30,pw=W-L-R,ph=H-T-B;
+  const end=new Date(); const start=new Date(end); start.setDate(end.getDate()-(days-1));
+  const x=d=>L+pw*((parse(d)-start)/86400000)/(days-1||1); const y=v=>T+ph*(1-(v-1)/9);
+  const byDate=Object.fromEntries(data.map(m=>[m.date,m.mood]));
+  let segs=[],cur=[],pts=[];
+  for(let i=0;i<days;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=iso(d);
+    if(byDate[k]!=null){const p=[x(k),y(byDate[k])];cur.push(p);pts.push([k,byDate[k],...p])}else if(cur.length){segs.push(cur);cur=[]}}
+  if(cur.length)segs.push(cur);
+  let g="";
+  [1,4,7,10].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1" ${v===1?"":'stroke-dasharray="2 4"'}/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-body)">${v}</text>`});
+  const nT=days<=14?4:days<=28?4:6;
+  for(let i=0;i<nT;i++){const d=new Date(start);d.setDate(start.getDate()+Math.round(i*(days-1)/(nT-1)));const k=iso(d);
+    g+=`<text x="${x(k)}" y="${H-10}" text-anchor="${i===0?"start":i===nT-1?"end":"middle"}" font-size="11" fill="var(--muted)" font-family="var(--f-body)">${d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</text>`}
+  const col=real?"var(--accent)":"var(--warm)";
+  segs.forEach(s=>{if(s.length>1){const dPath=s.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+    g+=`<path d="${dPath} L${s[s.length-1][0].toFixed(1)} ${T+ph} L${s[0][0].toFixed(1)} ${T+ph} Z" fill="${col}" opacity=".12"/><path d="${dPath}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" ${real?"":'stroke-dasharray="5 4"'}/>`}});
+  pts.forEach((p,i)=>{const last=i===pts.length-1;g+=`<circle cx="${p[2]}" cy="${p[3]}" r="${last?5:3}" fill="${last?col:"var(--surface)"}" stroke="${col}" stroke-width="2"><title>${fmt(p[0])}: ${p[1]}</title></circle>`});
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${real?"Mood chart":"Example mood chart"}">${g}</svg>${real?"":'<span class="example-tag">Example</span>'}`;
+  const ins=$("insights");
+  if(!real){ins.innerHTML=`<p class="lede" style="margin:0">This is example data. Your own chart appears after two check-ins.</p>`;return}
+  const recent=S.mood.filter(m=>parse(m.date)>=start);
+  const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  let rows=[];
+  if(recent.length)rows.push(`<div class="insight"><b>${avg(recent.map(m=>m.mood)).toFixed(1)}</b><span>average mood over this period (${recent.length} check-in${recent.length>1?"s":""})</span></div>`);
+  const comp=(key,label)=>{const a=S.mood.filter(m=>m[key]).map(m=>m.mood),b=S.mood.filter(m=>!m[key]).map(m=>m.mood);
+    if(a.length>=3&&b.length>=3){const d=avg(a)-avg(b);rows.push(`<div class="insight"><b>${d>=0?"+":""}${d.toFixed(1)}</b><span>on days you ${label} (${avg(a).toFixed(1)} vs ${avg(b).toFixed(1)})</span></div>`)}};
+  comp("moved","moved your body");comp("talked","talked with someone");comp("enjoyed","did something enjoyable");
+  if(S.mood.length<10&&rows.length<2)rows.push(`<p class="lede" style="margin:0">Patterns show up here once you have a few check-ins with and without each activity.</p>`);
+  ins.innerHTML=rows.join("")}
+function renderMood(){renderChart();const L=$("m-list");L.innerHTML="";
+  if(!S.mood.length)return emptyMsg(L,"Your check-ins will appear here.");
+  S.mood.slice(0,60).forEach(m=>{const did=[m.moved&&"moved",m.talked&&"talked with someone",m.enjoyed&&"did something enjoyable"].filter(Boolean).join(", ");
+    L.append(entry(m.date,m.note||did||"Check-in","Mood "+m.mood,[["Hours slept",m.sleep??""],["Minutes outside",m.outside??""],["Did",did],["Note",m.note]],
+      ()=>{S.mood=S.mood.filter(x=>x.id!==m.id);save();toast("Deleted");loadMoodForm();renderMood()}))})}
+
+/* ---------- THOUGHTS ---------- */
+const tFields=["t-sit","t-thought","t-emo","t-for","t-against","t-bal"];
+function clearThought(){tFields.forEach(i=>$(i).value="");setRange("t-belief",70);setRange("t-emoInt",70);setRange("t-balBelief",50);setRange("t-emoNow",50)}
+$("t-clear").onclick=clearThought;
+$("t-save").onclick=()=>{if(!$("t-thought").value.trim()&&!$("t-sit").value.trim()){toast("Write the situation or the thought first");return}
+  S.thoughts.unshift({id:uid(),date:today(),situation:$("t-sit").value.trim(),thought:$("t-thought").value.trim(),belief:+$("t-belief").value,
+    emotion:$("t-emo").value.trim(),emoInt:+$("t-emoInt").value,evFor:$("t-for").value.trim(),evAgainst:$("t-against").value.trim(),
+    balanced:$("t-bal").value.trim(),balBelief:+$("t-balBelief").value,emoNow:+$("t-emoNow").value});
+  if(save())toast("Thought record saved");clearThought();renderThoughts()};
+function renderThoughts(){const L=$("t-list");L.innerHTML="";
+  if(!S.thoughts.length)return emptyMsg(L,"Saved thought records will appear here.");
+  S.thoughts.forEach(t=>{const shift=t.balanced?t.emoInt-t.emoNow:null;
+    L.append(entry(t.date,t.thought||t.situation,shift!=null&&shift>0?`−${shift}%`:"",[
+      ["Situation",t.situation],["Automatic thought",t.thought?`${t.thought} (${t.belief}% belief)`:""],
+      ["Emotion",t.emotion?`${t.emotion} · ${t.emoInt}%`:`${t.emoInt}%`],["Evidence for",t.evFor],["Evidence against",t.evAgainst],
+      ["Balanced thought",t.balanced?`${t.balanced} (${t.balBelief}% belief)`:""],["Emotion now",t.balanced?`${t.emoNow}%`:""]],
+      ()=>{S.thoughts=S.thoughts.filter(x=>x.id!==t.id);save();toast("Deleted");renderThoughts()}))})}
+
+/* ---------- TRIANGLE ---------- */
+let corner=null;
+const tips={Thoughts:"Try questioning the thought on the Thoughts tab. Is it completely true?",Behaviors:"Pick something small you can do anyway. Action often comes before motivation.",Feelings:"Name the feeling without judging it. Slow breathing or a short walk can soften it."};
+document.querySelectorAll("#g-corner .chip").forEach(b=>b.onclick=()=>{corner=corner===b.dataset.v?null:b.dataset.v;
+  document.querySelectorAll("#g-corner .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===corner));
+  $("g-tip").textContent=corner?tips[corner]:"Behaviors is often the easiest place to start when energy is low."});
+function clearTri(){["g-sit","g-t","g-b","g-f","g-act","g-after"].forEach(i=>$(i).value="");corner=null;
+  document.querySelectorAll("#g-corner .chip").forEach(x=>x.setAttribute("aria-pressed","false"))}
+$("g-clear").onclick=clearTri;
+$("g-save").onclick=()=>{if(!["g-sit","g-t","g-b","g-f"].some(i=>$(i).value.trim())){toast("Fill in at least one corner first");return}
+  S.triangles.unshift({id:uid(),date:today(),situation:$("g-sit").value.trim(),thoughts:$("g-t").value.trim(),behaviors:$("g-b").value.trim(),
+    feelings:$("g-f").value.trim(),corner,action:$("g-act").value.trim(),after:$("g-after").value.trim()});
+  if(save())toast("Triangle saved");clearTri();renderTri()};
+function renderTri(){const L=$("g-list");L.innerHTML="";
+  if(!S.triangles.length)return emptyMsg(L,"Saved triangles will appear here.");
+  S.triangles.forEach(t=>{
+    const extra=document.createElement("div");extra.className="field";
+    extra.innerHTML=`<label>${t.after?"Update: what happened afterward":"Add later: what happened afterward?"}</label><textarea>${esc(t.after)}</textarea>`;
+    const b=document.createElement("button");b.className="btn ghost small";b.textContent="Save note";b.style.alignSelf="flex-start";
+    b.onclick=()=>{t.after=extra.querySelector("textarea").value.trim();save();toast("Note saved");renderTri()};extra.append(b);
+    L.append(entry(t.date,t.situation||t.thoughts||"Triangle",t.corner||"",[["Thoughts",t.thoughts],["Feelings",t.feelings],["Behaviors",t.behaviors],
+      ["Corner to change",t.corner],["Small thing to try",t.action],["What happened",t.after]],
+      ()=>{S.triangles=S.triangles.filter(x=>x.id!==t.id);save();toast("Deleted");renderTri()},extra))})}
+
+/* ---------- ACTIVITIES ---------- */
+const blocks=["6–8 am","8–10 am","10 am–12 pm","12–2 pm","2–4 pm","4–6 pm","6–8 pm","8–10 pm","10 pm–12 am","Overnight"];
+blocks.forEach(b=>{const o=document.createElement("option");o.textContent=b;$("a-block").append(o)});
+function curBlock(){const h=new Date().getHours();if(h<6)return 9;return Math.min(8,Math.floor((h-6)/2))}
+$("a-block").selectedIndex=curBlock();$("a-date").value=today();
+$("a-date").addEventListener("change",renderAct);
+$("a-save").onclick=()=>{const w=$("a-what").value.trim();if(!w){toast("Write what you did first");return}
+  S.activities.push({id:uid(),date:$("a-date").value||today(),block:$("a-block").value,what:w,p:+$("a-p").value,m:+$("a-m").value});
+  if(save())toast("Activity added");$("a-what").value="";setRange("a-p",5);setRange("a-m",5);renderAct()};
+function renderAct(){const day=$("a-date").value||today();
+  $("a-daylabel").textContent=day===today()?"Logged today":"Logged on "+fmt(day);
+  const L=$("a-list");L.innerHTML="";
+  const list=S.activities.filter(a=>a.date===day).sort((a,b)=>blocks.indexOf(a.block)-blocks.indexOf(b.block));
+  if(!list.length)emptyMsg(L,"Nothing logged for this day yet.");
+  list.forEach(a=>L.append(entry(a.date,`${a.block} · ${a.what}`,`P${a.p} M${a.m}`,[["Time",a.block],["Activity",a.what],["Pleasure",a.p],["Mastery",a.m]],
+    ()=>{S.activities=S.activities.filter(x=>x.id!==a.id);save();toast("Deleted");renderAct()})));
+  const cut=new Date();cut.setDate(cut.getDate()-6);const cutS=iso(cut);
+  const agg={};S.activities.filter(a=>a.date>=cutS).forEach(a=>{const k=a.what.toLowerCase();(agg[k]=agg[k]||{name:a.what,n:0,p:0,m:0});agg[k].n++;agg[k].p+=a.p;agg[k].m+=a.m});
+  const top=Object.values(agg).map(o=>({...o,score:(o.p+o.m)/o.n})).sort((a,b)=>b.score-a.score).slice(0,5);
+  const T=$("a-top");T.innerHTML="";
+  if(!top.length)return emptyMsg(T,"Log a few activities and your top ones will show up here.");
+  top.forEach(o=>{const d=document.createElement("div");d.className="insight";
+    d.innerHTML=`<span class="pill">${(o.p/o.n).toFixed(0)} P · ${(o.m/o.n).toFixed(0)} M</span><span>${esc(o.name)}${o.n>1?` <span class="hint">×${o.n}</span>`:""}</span>`;T.append(d)})}
+
+/* ---------- BACKUP ---------- */
+function counts(){$("counts").textContent=`${S.mood.length} check-ins · ${S.thoughts.length} thought records · ${S.triangles.length} triangles · ${S.activities.length} activities`}
+$("openSettings").onclick=()=>{counts();$("sheet").hidden=false};
+$("closeSettings").onclick=()=>{$("sheet").hidden=true;resetWipe()};
+$("sheet").addEventListener("click",e=>{if(e.target.id==="sheet"){$("sheet").hidden=true;resetWipe()}});
+$("copyBackup").onclick=()=>{const txt=JSON.stringify({app:"steady",v:1,saved:new Date().toISOString(),data:S});const ta=$("backupText");ta.value=txt;
+  const p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject();
+  p.then(()=>toast("Backup copied. Paste it into your notes app.")).catch(()=>{ta.focus();ta.select();toast("Backup selected. Copy it from the box.")})};
+$("restore").onclick=()=>{try{const o=JSON.parse($("backupText").value);const d=o.data||o;
+  if(!Array.isArray(d.mood)||!Array.isArray(d.thoughts))throw 0;S=Object.assign(blank(),d);save();renderAll();counts();toast("Backup restored")}
+  catch(e){toast("That doesn't look like a Steady backup. Paste the full text and try again.")}};
+function resetWipe(){const r=$("wipeRow");r.innerHTML='<button class="btn danger small" id="wipe">Delete all entries</button>';$("wipe").onclick=askWipe}
+function askWipe(){const r=$("wipeRow");r.innerHTML='<span class="hint">This deletes everything on this device.</span><button class="btn danger small" id="wipeYes">Delete everything</button><button class="btn ghost small" id="wipeNo">Cancel</button>';
+  $("wipeYes").onclick=()=>{S=blank();save();renderAll();counts();resetWipe();toast("All entries deleted")};$("wipeNo").onclick=resetWipe}
+$("wipe").onclick=askWipe;
+
+function renderAll(){loadMoodForm();renderMood();renderThoughts();renderTri();renderAct()}
+renderAll();
+})();
+</script>

@@ -1,0 +1,120 @@
+# Steady PWA — Design
+
+Date: 2026-09-28
+Source of truth for features, copy and visuals: `steady-prototype.html` and `claude-code-handover.md`.
+
+## Goal
+
+Turn the single-file Steady prototype (four CBT worksheets) into an installable, fully offline iPhone PWA with private on-device storage, file backup/restore, a Shortcuts-based daily reminder, and a Shortcuts-based "Fill from Health" sleep import. Deploy as a static site on Netlify from GitHub.
+
+## Decisions made
+
+| Topic | Decision |
+|---|---|
+| Stack | Plain HTML/CSS/JS ES modules. No build step, no runtime dependencies. |
+| Storage | IndexedDB, one record holding the whole `{mood, thoughts, triangles, activities}` object. One-time migration from the prototype's localStorage key `steady-notebook-v1`. |
+| Reminder | v1: an in-app guide for an iOS Shortcuts Personal Automation. Real Web Push (Netlify scheduled function) is a possible later add-on and is not part of v1. |
+| Sleep import | v1: iOS Shortcut reads Apple Health sleep and copies a tagged string; a "Fill from Health" button in the mood check-in reads the clipboard. Oura is covered by the Oura app → Apple Health sync. No direct Oura API. |
+| Sleep insight | Added to the mood insights next to the three activity comparisons. |
+| Restore | An import replaces all data on the device, after an inline confirmation. |
+| Network | No data ever leaves the device. The CSP `connect-src 'self'` enforces this. |
+
+## File layout
+
+```
+index.html              markup ported from prototype + PWA meta tags
+manifest.webmanifest    name "Steady", display standalone, theme/background teal, icons
+sw.js                   precache app shell; cache-first; versioned cache name
+netlify.toml            security headers (CSP), no-cache for sw.js and manifest
+css/app.css             prototype CSS + safe-area insets, 44px min touch targets, @font-face
+js/main.js              boot: load store, migrate, render, register SW, tab routing
+js/store.js             IndexedDB get/put of state; localStorage migration; persist() request
+js/logic.js             pure functions (no DOM): insights, sleep insight, top activities,
+                        backup serialize/parse/validate, Health clipboard parse, date helpers
+js/ui.js                shared DOM helpers: $, toast, entry(), delButton() inline confirm
+js/mood.js  js/thoughts.js  js/triangle.js  js/activities.js   one module per worksheet
+js/backup.js            settings sheet: export file, import file, copy text, restore text,
+                        delete all, last-backup date, reminder + Health guides
+fonts/                  Bricolage Grotesque (500, 700) + Lexend (300–600), woff2, OFL licence
+icons/                  icon.svg, apple-touch-icon-180.png, icon-192.png, icon-512.png,
+                        icon-maskable-512.png
+tests/logic.test.js     node --test for js/logic.js
+README.md               local run, deploy, iPhone install, Shortcut setup
+```
+
+## Data
+
+Unchanged from the prototype:
+
+- `mood`: `{id, date, mood 1–10, sleep|null, outside|null, moved, talked, enjoyed, note}`, one per date
+- `thoughts`: `{id, date, situation, thought, belief, emotion, emoInt, evFor, evAgainst, balanced, balBelief, emoNow}`
+- `triangles`: `{id, date, situation, thoughts, behaviors, feelings, corner, action, after}`
+- `activities`: `{id, date, block, what, p, m}`
+
+One new field sits outside the data object, in a separate IndexedDB `meta` record: `lastBackup` (ISO string).
+
+`sleep` on a mood entry means the hours slept on the night *ending* on that date.
+
+Storage flow: on boot, read IndexedDB. If it is empty and localStorage has `steady-notebook-v1`, copy that into IndexedDB. The localStorage copy is left in place (no deletion). Every save writes the whole state. If a write fails, show the prototype's toast. Call `navigator.storage.persist()` once (best effort).
+
+## Features (ported as-is from the prototype)
+
+All four worksheets, the chart (2 wk / 4 wk / 3 mo, gaps for missed days, example data until 2 check-ins), the activity insights (≥3 days in each group), the thought-record emotion drop, the triangle corner tips, adding "what happened afterward" later from the history, the activity day list, the top 5 activities over 7 days, inline delete confirmations, the tab memory, and the visible 988 line.
+
+## New in v1
+
+### Sleep insight
+Only mood entries with `sleep != null` count. They split into sleep ≥ 7 h and sleep < 7 h. The insight shows when each group has ≥3 entries: `+1.3 on days after 7+ hours of sleep (6.1 vs 4.8)`.
+
+### Fill from Health
+- The mood form gets a small ghost button, "Fill from Health", next to "Hours slept".
+- It calls `navigator.clipboard.readText()`, which triggers iOS's own Paste callout.
+- Expected format: `steady-sleep:YYYY-MM-DD:H.H` (whitespace tolerated, `,` also accepted as the decimal separator for non-US locales). The value must be between 0 and 24.
+- On success it fills "Hours slept" and toasts `Filled 7.2 h (night ending Mon, Sep 28)`. If the clipboard date differs from the form date, it still fills, and the toast names the night so you can tell.
+- On failure (permission denied, wrong format) it toasts `No Health sleep found on the clipboard. Run the "Steady sleep" shortcut first.` plus a link that opens the setup guide.
+- Nothing is saved until the user taps Save check-in.
+
+### Shortcut guides (in the settings sheet, collapsible, and in the README)
+1. **"Steady sleep" shortcut:** Find Health Samples (Sleep Analysis, End Date is in the last 1 day, value is Asleep/Core/Deep/REM, i.e. not In Bed or Awake) → get Duration of each → Calculate Statistics Sum → divide by 3600 and round to 1 decimal → Text `steady-sleep:[Current Date yyyy-MM-dd]:[hours]` → Copy to Clipboard → Show Notification "Sleep copied — open Steady to check in".
+2. **Evening reminder:** Shortcuts → Automation → Time of Day (e.g. 8 pm, daily, Run Immediately) → Run Shortcut "Steady sleep" (or just Show Notification "How's your mood today?"). Then open Steady from the Home Screen.
+
+The exact Health action names and the summing step have to be verified on a real iPhone. The guide says so.
+
+### Backup and restore
+- **Export backup file:** builds the prototype-format JSON `{app:"steady", v:1, saved, data}`, named `steady-backup-YYYY-MM-DD.json`. It uses `navigator.share({files})` when `canShare` allows, which opens the iOS share sheet → Save to Files. Otherwise it falls back to an `<a download>` blob. On success it records `lastBackup`.
+- **Import from file:** a `<input type=file accept=".json,application/json">` → parse and validate (same checks as the prototype, plus type checks on each array) → inline confirmation "Replace N entries on this device with M from the backup?" → write.
+- **Copy backup text** and **Restore from pasted text** are kept from the prototype. Pasted restore also uses the inline confirmation.
+- A note explains that iOS may clear website data if the app goes unused for a while, so backups should be regular. It shows "Last backup: Sep 20 (8 days ago)" or "No backup yet". If the last backup is more than 14 days old and there is data, a quiet one-line nudge appears at the top of the mood tab.
+- **Delete all:** keeps the prototype's inline confirmation.
+
+## PWA
+
+- `<meta name="apple-mobile-web-app-capable" content="yes">`, `mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style` = `default`, `apple-mobile-web-app-title` = "Steady", `viewport-fit=cover`, `theme-color` light and dark, and `apple-touch-icon`.
+- Safe areas: the header gets `padding-top: env(safe-area-inset-top)`, the tab bar and toast already use the bottom inset, and the side insets are added.
+- Service worker: precaches every file in the app shell under `steady-v<N>`. Fetch is cache-first for same-origin GET, with a network fallback that is also cached. `activate` deletes old caches. When a new SW is waiting, a toast-style bar says "Update ready — Reload", which triggers `skipWaiting` → reload.
+- Icon: an original mark, a rounded teal square (#2F6F6A) with a simple white shape (a steady horizon line with a gentle rise, echoing the mood chart). Drawn as SVG and rasterised to PNG with a small local script or in-browser canvas. The maskable version keeps the mark inside the safe zone.
+- Fonts: woff2 files downloaded once into `fonts/` with `font-display: swap`. The Google Fonts links are removed.
+
+## Security / privacy headers (netlify.toml)
+
+`Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`.
+
+Also `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and `Permissions-Policy` that disables camera, microphone and geolocation. Inline `style=` attributes from the prototype move into CSS classes so `style-src 'self'` holds. The chart sets SVG presentation attributes, not style attributes, so it is unaffected.
+
+## Accessibility and motion
+
+The prototype's ARIA stays. Buttons, chips and tabs get a minimum 44×44 px touch target. `prefers-reduced-motion` disables transitions and smooth scrolling. Both themes follow the system setting.
+
+## Testing
+
+- `node --test tests/` covers the pure logic: activity and sleep insights (thresholds, the ≥3 rule), top activities, backup round-trip (serialize → parse equals input), rejection of malformed backups, Health clipboard parsing (valid, comma decimal, bad prefix, out of range), and the localStorage-migration shape merge.
+- Browser pane at 390 px in light and dark: every tab renders, saves work, and inline deletes work. An export → delete all → import round-trip restores identical data. Offline check: after the first load, the SW goes offline (DevTools network offline) and a reload still works. The manifest and SW are checked for installability (Lighthouse PWA/DevTools). Also confirmed: no requests leave the origin, and there are no CSP violations in the console.
+- Cannot test here: real iPhone install, the iOS share-sheet export, the iOS clipboard Paste prompt, the Shortcuts/Health actions, and data eviction. These are listed in the final report with manual steps.
+
+## Deploy
+
+Static site at the repo root, with Netlify publish directory `.` and no build command. The README gives step-by-step instructions: create the GitHub repo and push, then Netlify → Add new site → Import from GitHub → deploy. On iPhone: open the URL in Safari → Share → Add to Home Screen → open from the Home Screen → export a first backup. Then set up the two Shortcuts.
+
+## Out of scope for v1
+
+Web Push reminders, direct Oura API, native app, accounts, sync between devices, and a merge-style import.
