@@ -151,3 +151,22 @@ Nothing is ever sent without a tap, and Steady still makes no network requests.
 ## Phase B (planned, not built): live mood-only sharing
 
 The app would upload an end-to-end-encrypted record `{date, mood}` after each check-in to a small store (a Netlify Function plus Netlify Blobs or similar). The key lives only in the URL fragment of the friend's link, so the server stores ciphertext only. The friend gets a view page with the chart, and a daily scheduled function sends Web Push alerts to the friend for "no check-in for N days" or "mood ≤ threshold twice in a row". Phase B would reuse the Phase A settings (name, threshold, mood-only scope). It needs a CSP `connect-src` exception for that one endpoint, VAPID keys, and friend opt-in to notifications.
+
+---
+
+# Addendum (2026-09-29): Today home tab, gear + appearance
+
+**Today tab** (first of 5 tabs; the app opens here unless the URL has a tab hash; the last-tab memory is removed):
+1. Greeting by hour: 5–11 "Good morning", 12–16 "Good afternoon", 17–21 "Good evening", 22–4 "Hi there. Go gently tonight." A date line sits below.
+2. "How are you arriving?" with four choices. Each reveals an inline reply with a primary button:
+   - Doing okay → "A quick check-in helps you spot patterns over time." [Check in] → Mood
+   - Heavy / low → "That sounds hard. When energy is low, one small action can help. A shower, a short walk or a glass of water all count." [Log one small thing] → Activities, plus [Just check in] → Mood, with the 988 line
+   - Caught in a thought → "Let's slow it down. Write the thought, then look at the evidence." [Start a thought record] → Thoughts
+   - Want to reflect → "Map how your thoughts, feelings and actions feed each other." [Open the CBT triangle] → Triangle
+3. Today strip: "Checked in · mood 6" or "Not checked in yet" [Check in]; "N activities logged today"; a 7-day mini chart when ≥1 check-in falls in the window (gaps for missed days).
+4. Worksheet cards: Mood ("30 seconds to notice how today is going"), Thought record ("When a thought won't let go"), CBT triangle ("See how thoughts, feelings and actions connect"), Activity log ("Notice what lifts you, even a little").
+The backup nudge moves from the Mood tab to Today. No streaks and no missed-day counts.
+
+**Settings:** the header button becomes a gear labelled "Settings", and the sheet is titled "Settings". An Appearance control (Auto / Light / Dark) sits first. The choice is stored per device in localStorage `steady-theme` and applied before first paint by a classic script `js/theme.js` in `<head>`, which sets `data-theme` and both theme-color metas. It is not part of backups.
+
+**Pure functions (tested):** `greeting(hour)`, `weekSeries(mood, todayIso)` (7 values or null, also used by `weekSummary`), `todayStatus(state, todayIso)`.

@@ -153,11 +153,10 @@ const BARS = "▁▂▃▄▅▆▇█";
 
 /* Plain-text summary of the last 7 days (today inclusive): mood scores only. Null if no check-ins. */
 export function weekSummary(mood, todayIso, locale) {
-  const days = Array.from({ length: 7 }, (_, i) => addDays(todayIso, i - 6));
-  const byDate = Object.fromEntries(mood.map(m => [m.date, m.mood]));
-  const vals = days.map(d => byDate[d] ?? null);
+  const series = weekSeries(mood, todayIso);
+  if (!series) return null;
+  const days = series.map(d => d.date), vals = series.map(d => d.mood);
   const got = vals.filter(v => v != null);
-  if (!got.length) return null;
   const first = parseIso(days[0]), last = parseIso(days[6]);
   const md = d => d.toLocaleDateString(locale, { month: "short", day: "numeric" });
   const range = first.getMonth() === last.getMonth() ? `${md(first)}–${last.getDate()}` : `${md(first)}–${md(last)}`;
@@ -171,4 +170,25 @@ export function weekSummary(mood, todayIso, locale) {
     `Lowest: ${low} (${lowDay})`,
     "Mood 1–10 · _ or – = no check-in",
   ].join("\n");
+}
+
+/* ---------- Today tab ---------- */
+
+export function greeting(hour) {
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  if (hour >= 17 && hour < 22) return "Good evening";
+  return "Hi there. Go gently tonight.";
+}
+
+/* The last 7 days (oldest first, today last) as {date, mood|null}; null when none has a check-in. */
+export function weekSeries(mood, todayIso) {
+  const byDate = Object.fromEntries(mood.map(m => [m.date, m.mood]));
+  const series = Array.from({ length: 7 }, (_, i) => { const date = addDays(todayIso, i - 6); return { date, mood: byDate[date] ?? null }; });
+  return series.some(d => d.mood != null) ? series : null;
+}
+
+export function todayStatus(state, todayIso) {
+  const e = state.mood.find(m => m.date === todayIso);
+  return { checkedIn: !!e, mood: e ? e.mood : null, activities: state.activities.filter(a => a.date === todayIso).length };
 }

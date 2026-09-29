@@ -1,6 +1,6 @@
 # Steady
 
-A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It has four worksheets:
+A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a gentle "How are you arriving?" question that points you to the right worksheet, today's status with a mini chart of your week, and cards for the four worksheets:
 
 - **Mood check-in**: mood 1–10, sleep, time outside, activity toggles and a note, with a chart and insights
 - **Thought record**: 7 steps, from the automatic thought to a balanced thought
@@ -51,7 +51,11 @@ When you change any app file, bump `VERSION` in `sw.js` (for example `steady-v1`
 2. Tap the **Share** button (the square with an up arrow), scroll down, and tap **Add to Home Screen**. Keep the name "Steady" and make sure **Open as Web App** is on, then tap **Add**.
 3. Open **Steady from the Home Screen icon** from now on, not from Safari. The installed app keeps its data separate from Safari, so entries made in a Safari tab won't appear in the installed app.
 4. Open the app once with internet access. After that it works fully offline.
-5. Tap the download icon (top right) and choose **Export backup file → Save to Files**, so you know how backups work.
+5. Tap the **gear** (top right) and choose **Export backup file → Save to Files**, so you know how backups work.
+
+### Light or dark mode
+
+Tap the **gear** (top right) → **Appearance**. **Auto** follows your iPhone's setting (Settings → Display & Brightness). **Light** or **Dark** fixes Steady's look regardless of the phone.
 
 ### Backups matter
 
@@ -59,7 +63,7 @@ iOS can delete a web app's stored data, for example if you don't open it for sev
 
 ## Optional: a support person
 
-In the backup sheet, under **Support person**, you can add someone you trust: a name, and optionally a phone number.
+In **Settings** (the gear), under **Support person**, you can add someone you trust: a name, and optionally a phone number.
 
 - **Low-day prompt:** when today's mood is at or below your threshold (3 by default), a card offers **"Let Ana know?"**. **Send message** opens Messages to their number, or the share sheet if you didn't add one, with a short message containing only your mood score. It appears at most once a day.
 - **Share my week:** a button under the mood chart sends a text summary of the last 7 days (bars, daily scores, average, lowest day). It contains mood scores only: no notes, sleep or worksheets.
@@ -69,7 +73,7 @@ Your support person isn't a crisis service and may not see a message right away.
 
 ## Optional: evening reminder and sleep from Apple Health / Oura
 
-Web apps can't read Apple Health or schedule notifications without a server, so Steady uses iOS Shortcuts instead. Nothing leaves your phone. The full step-by-step guides are in the app, in the backup sheet under **Reminders & sleep**. In short:
+Web apps can't read Apple Health or schedule notifications without a server, so Steady uses iOS Shortcuts instead. Nothing leaves your phone. The full step-by-step guides are in the app, in **Settings** under **Reminders & sleep**. In short:
 
 - **"Steady sleep" shortcut:** Find Health Samples (Sleep, last 1 day, excluding In Bed and Awake) → sum the durations → convert to hours → build the text `steady-sleep:YYYY-MM-DD:H.H` → Copy to Clipboard. In Steady, tap **Fill from Health** → **Paste**.
 - **Oura:** in the Oura app → Settings → **Apple Health**, turn on sleep syncing so Oura sleep flows into Health.
@@ -82,7 +86,9 @@ The exact Shortcut action names can differ slightly between iOS versions. If Dur
 ```
 index.html              page markup
 css/app.css             styles (light + dark themes, safe areas)
-js/main.js              boot, tabs, service worker registration
+js/main.js              boot, tabs, appearance control, service worker registration
+js/theme.js             applies Auto/Light/Dark before first paint
+js/today.js             Today tab: greeting, "How are you arriving?", status, week mini chart
 js/logic.js             pure logic (insights, backup format, Health clipboard parsing), unit-tested
 js/store.js             IndexedDB storage + one-time migration from the prototype's localStorage
 js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows)

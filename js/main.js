@@ -1,4 +1,4 @@
-/* Boot: load on-device state, wire the four worksheets and the backup sheet, register the service worker. */
+/* Boot: load on-device state, wire the Today tab, four worksheets and settings sheet, register the service worker. */
 import { today } from "./logic.js";
 import { loadState, saveState, requestPersist } from "./store.js";
 import { $, toast, wireRanges } from "./ui.js";
@@ -8,9 +8,10 @@ import * as triangle from "./triangle.js";
 import * as activities from "./activities.js";
 import * as backup from "./backup.js";
 import * as support from "./support.js";
+import * as todayTab from "./today.js";
 
-const TAB_KEY = "steady-notebook-v1-tab", TABS = ["mood", "thought", "tri", "act"];
-const sheets = [mood, thoughts, triangle, activities];
+const TABS = ["today", "mood", "thought", "tri", "act"];
+const sheets = [todayTab, mood, thoughts, triangle, activities];
 let state;
 
 const ctx = {
@@ -27,6 +28,7 @@ const ctx = {
   getSupport: () => support.get(),
   setSupport: s => support.set(s),
   afterMoodSave: e => support.afterMoodSave(e),
+  showTab: name => showTab(name),
 };
 
 function renderAll() { sheets.forEach(s => s.render()); }
@@ -35,34 +37,41 @@ function setTodayLabel() {
   $("todayLabel").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 }
 
+function showTab(name) {
+  document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === name; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+  document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
+  if (name === "today") todayTab.render(); // status may have changed on another tab
+  window.scrollTo(0, 0);
+}
+
+/* The app always opens on Today; a #tab link (e.g. #thought) opens that worksheet instead. */
 function initTabs() {
   const tabs = [...document.querySelectorAll("nav.tabs button")];
-  const show = name => {
-    tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
-    document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
-    try { localStorage.setItem(TAB_KEY, name); } catch { /* private mode */ }
-    window.scrollTo(0, 0);
-  };
   tabs.forEach((b, i) => {
-    b.addEventListener("click", () => show(b.dataset.tab));
+    b.addEventListener("click", () => showTab(b.dataset.tab));
     b.addEventListener("keydown", e => {
       const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); show(n.dataset.tab); }
+      if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); showTab(n.dataset.tab); }
     });
   });
-  let start = "mood";
-  try { start = localStorage.getItem(TAB_KEY) || "mood"; } catch { /* ignore */ }
   const hash = location.hash.slice(1);
-  if (TABS.includes(hash)) start = hash;
-  show(TABS.includes(start) ? start : "mood");
-  window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (TABS.includes(h)) show(h); });
+  showTab(TABS.includes(hash) ? hash : "today");
+  window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (TABS.includes(h)) showTab(h); });
+}
+
+function initAppearance() {
+  const btns = [...document.querySelectorAll("#themeSeg button")];
+  const mark = t => btns.forEach(b => b.setAttribute("aria-pressed", b.dataset.themeOpt === t));
+  mark(window.steadyTheme?.get() ?? "auto");
+  btns.forEach(b => (b.onclick = () => { window.steadyTheme?.set(b.dataset.themeOpt); mark(b.dataset.themeOpt); }));
 }
 
 /* If the app stays open past midnight, move the date pickers that were on "today" to the new day. */
 function watchDayChange() {
   let day = today();
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible" || today() === day) return;
+    if (document.visibilityState !== "visible") return;
+    if (today() === day) { todayTab.render(); return; } // greeting follows the time of day
     ["m-date", "a-date"].forEach(id => { if ($(id).value === day) $(id).value = today(); });
     day = today();
     setTodayLabel();
@@ -100,6 +109,7 @@ async function boot() {
   sheets.forEach(s => s.init(ctx));
   backup.init(ctx);
   support.init(ctx);
+  initAppearance();
   initTabs();
   renderAll();
   backup.updateNudge();

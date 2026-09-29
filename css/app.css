@@ -129,8 +129,8 @@ input:focus,textarea:focus,select:focus,button:focus-visible,summary:focus-visib
 .tri textarea{background:var(--surface);min-height:70px}
 /* nav */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,var(--sar)) calc(6px + var(--sab)) max(8px,var(--sal));z-index:20}
-nav.tabs .inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-nav.tabs button{font:inherit;font-size:.72rem;background:transparent;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:50px;border-radius:10px;cursor:pointer}
+nav.tabs .inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+nav.tabs button{font:inherit;font-size:.7rem;min-width:0;background:transparent;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:50px;border-radius:10px;cursor:pointer}
 nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-soft);font-weight:500}
 .crisis{font-size:.8rem;color:var(--muted);text-align:center;padding:4px 8px}
@@ -139,6 +139,25 @@ nav.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-
 /* banners */
 .banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.85rem;color:var(--fg);background:var(--accent-soft);border-radius:12px;padding:8px 8px 8px 14px}
 .updatebar{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + var(--sat));z-index:45;width:calc(100% - 32px);max-width:528px;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+/* today */
+.hello{padding:6px 2px 2px}
+.hello h2{font-size:1.6rem}
+.arrive{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.arrive .chip{border-radius:12px;min-height:52px;text-align:left;padding:10px 14px}
+.arrive .chip[aria-pressed=true]::before{content:none}
+.reply{display:flex;flex-direction:column;gap:10px;background:var(--accent-soft);border-radius:12px;padding:12px 14px}
+.reply p{margin:0}
+.reply .hint a{color:var(--fg);font-weight:600}
+.status{display:flex;flex-direction:column;gap:8px}
+.status .row-line{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:var(--tap)}
+.mini{display:block;width:100%;height:auto;margin-top:4px}
+.mini-days{display:grid;grid-template-columns:repeat(7,1fr);font-size:.72rem;color:var(--muted);text-align:center}
+.sheets{display:grid;gap:8px}
+.sheetcard{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-height:60px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer}
+.sheetcard svg{width:24px;height:24px;flex:none;color:var(--accent)}
+.sheetcard span{display:flex;flex-direction:column;min-width:0}
+.sheetcard b{font-weight:500}
+.sheetcard small{color:var(--muted);font-size:.82rem}
 /* settings sheet */
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--bg);width:100%;max-width:560px;max-height:calc(100% - var(--sat) - 24px);overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:18px 18px 0 0;padding:18px max(16px,var(--sar)) calc(20px + var(--sab)) max(16px,var(--sal));display:flex;flex-direction:column;gap:14px}

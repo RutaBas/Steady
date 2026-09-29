@@ -1,6 +1,6 @@
 /* Offline support: precache the whole app shell, serve cache-first, clean up old caches.
    Bump VERSION whenever any file below changes so phones pick up the update. */
-const VERSION = "steady-v2";
+const VERSION = "steady-v3";
 const SHELL = [
   "./",
   "index.html",
@@ -16,6 +16,8 @@ const SHELL = [
   "js/activities.js",
   "js/backup.js",
   "js/support.js",
+  "js/today.js",
+  "js/theme.js",
   "fonts/bricolage-latin.woff2",
   "fonts/bricolage-latin-ext.woff2",
   "fonts/lexend-latin.woff2",
