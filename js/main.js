@@ -55,7 +55,7 @@ function showTab(name) {
   const navName = SUBPAGES.includes(name) ? "today" : name;
   document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === navName; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
-  if (name === "today") { todayTab.render(); look.render(); } // status may have changed on another tab
+  if (name === "today") { todayTab.render(); look.render(); planner.render(); } // status may have changed on another tab
   window.scrollTo(0, 0);
 }
 

@@ -6,7 +6,10 @@ import { $, esc, uid, toast, setRange, entry, emptyMsg, fmt, areaPicker, el } fr
 let ctx, area, fromPlan = null;
 function curBlock() { const h = new Date().getHours(); return h < 6 ? 9 : Math.min(8, Math.floor((h - 6) / 2)); }
 
+function forgetPlan() { fromPlan = null; $("a-expect").hidden = true; }
+
 export function setMode(m) {
+  if (m !== "log") forgetPlan();
   document.querySelectorAll("#a-mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
   $("a-logMode").hidden = m !== "log";
   $("a-planMode").hidden = m !== "plan";
@@ -39,6 +42,7 @@ export function init(c) {
   $("a-date").value = today();
   $("a-date").addEventListener("change", render);
   area = areaPicker("a-area");
+  $("a-what").addEventListener("input", () => { if (!$("a-what").value.trim()) forgetPlan(); });
   document.querySelectorAll("#a-mode button").forEach(b => (b.onclick = () => setMode(b.dataset.mode)));
   $("a-save").onclick = async () => {
     const w = $("a-what").value.trim();

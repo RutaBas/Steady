@@ -1,7 +1,7 @@
 /* Plan mode on the Activities tab (behavioral activation): small planned activities with an optional
    life area and enjoyment guess. Items live in state.planned. */
-import { today, BLOCKS, ANY_TIME, addPlanned, upcomingPlanned, prunePlanned } from "./logic.js";
-import { $, fmt, toast, setRange, delButton, areaPicker, el } from "./ui.js";
+import { today, BLOCKS, ANY_TIME, addPlanned, upcomingPlanned, prunePlanned, plannedFor, plannedNudge, missedLabel } from "./logic.js";
+import { $, fmt, toast, setRange, delButton, areaPicker, el, smallBtn } from "./ui.js";
 
 let ctx, area, expectSet = false;
 
@@ -51,6 +51,31 @@ function item(p) {
   return d;
 }
 
+/* Today: one line per plan for today, and at most one gentle line about a missed plan. */
+function renderToday(t) {
+  const P = ctx.state.planned, box = $("todayPlans");
+  box.replaceChildren();
+  for (const p of plannedFor(P, t)) {
+    const row = el("div", "row-line");
+    row.append(el("span", null, `Planned: ${p.what}`), smallBtn("Did it", "", () => ctx.logFromPlan(p)));
+    box.append(row);
+  }
+  const n = plannedNudge(P, t);
+  if (n) {
+    const nb = el("div", "look-nudge");
+    nb.setAttribute("role", "status");
+    nb.append(el("span", null, `${missedLabel(n.date, t)}: ${n.what}.`));
+    const row = el("div", "actions");
+    row.append(
+      smallBtn("Try today", "", () => save(P.map(x => (x.id === n.id ? { ...x, date: t } : x)), "Moved to today")),
+      smallBtn("Let it go", "ghost", () => save(P.filter(x => x.id !== n.id))),
+    );
+    nb.append(row);
+    box.append(nb);
+  }
+  box.hidden = !box.childElementCount;
+}
+
 export function render() {
   const t = today();
   $("p-date").min = t;
@@ -58,4 +83,5 @@ export function render() {
   const up = upcomingPlanned(ctx.state.planned, t);
   $("p-list").replaceChildren(...up.map(item));
   $("p-listWrap").hidden = !up.length;
+  renderToday(t);
 }
