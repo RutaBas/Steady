@@ -2,7 +2,7 @@
    Today shows the soonest one and a gentle "How was it?" nudge for a recent past one. */
 import { today, daysUntil, untilLabel, splitPlans, planNudge, addPlan } from "./logic.js";
 import { getMeta, setMeta } from "./store.js";
-import { $, fmt, toast, delButton } from "./ui.js";
+import { $, fmt, toast, delButton, el, smallBtn } from "./ui.js";
 
 let ctx, shown = true;
 
@@ -46,18 +46,6 @@ function toJoy(p) {
   ctx.startJoyNote(p.name, fmt(p.date) + ". ");
 }
 
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
-function button(label, style, onClick) {
-  const b = el("button", `btn ${style} small`.replace(/\s+/g, " ").trim(), label);
-  b.type = "button"; b.onclick = onClick;
-  return b;
-}
-
 /* "yesterday" / "on Fri, Sep 25" for the nudge. */
 const whenPast = (date, t) => (daysUntil(date, t) === -1 ? "yesterday" : "on " + fmt(date));
 
@@ -77,7 +65,7 @@ function renderCard(t) {
     card.append(open);
   } else {
     const row = el("div", "row-line");
-    row.append(el("span", null, "Something to look forward to?"), button("Add", "ghost", () => { ctx.showTab("look"); $("lookName").focus(); }));
+    row.append(el("span", null, "Something to look forward to?"), smallBtn("Add", "ghost", () => { ctx.showTab("look"); $("lookName").focus(); }));
     card.append(row);
   }
   if (nudge) {
@@ -85,7 +73,7 @@ function renderCard(t) {
     box.setAttribute("role", "status");
     box.append(el("span", null, `${nudge.name} was ${whenPast(nudge.date, t)}. How was it?`));
     const row = el("div", "actions");
-    row.append(button("Add to Joy jar", "", () => toJoy(nudge)), button("Dismiss", "ghost", () => markDone(nudge.id)));
+    row.append(smallBtn("Add to Joy jar", "", () => toJoy(nudge)), smallBtn("Dismiss", "ghost", () => markDone(nudge.id)));
     box.append(row);
     card.append(box);
   }
@@ -97,7 +85,7 @@ function item(p, t, past) {
   head.append(el("b", null, p.name), el("span", "hint", fmt(p.date) + (past ? "" : " · " + untilLabel(daysUntil(p.date, t)))));
   d.append(head);
   const del = delButton(() => remove(p.id), "Delete this?");
-  if (past) del.prepend(button("Add to Joy jar", "ghost", () => toJoy(p)));
+  if (past) del.prepend(smallBtn("Add to Joy jar", "ghost", () => toJoy(p)));
   d.append(del);
   return d;
 }

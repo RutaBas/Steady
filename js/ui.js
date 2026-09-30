@@ -1,5 +1,5 @@
 /* Shared DOM helpers ported from the prototype. */
-import { parseIso } from "./logic.js";
+import { parseIso, LIFE_AREAS } from "./logic.js";
 
 export const $ = id => document.getElementById(id);
 export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -70,3 +70,30 @@ export function entry(date, title, pill, rows, onDelete, extra) {
 }
 
 export function emptyMsg(el, msg) { el.innerHTML = `<div class="empty">${esc(msg)}</div>`; }
+
+export function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+export function smallBtn(label, style, onClick) {
+  const b = el("button", `btn ${style} small`.replace(/\s+/g, " ").trim(), label);
+  b.type = "button"; b.onclick = onClick;
+  return b;
+}
+
+/* Single-select life area chips inside #id; tapping the selected chip clears it. */
+export function areaPicker(id) {
+  const box = $(id);
+  let value = null;
+  const paint = () => box.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.v === value));
+  LIFE_AREAS.forEach(a => {
+    const b = el("button", "chip", a);
+    b.type = "button"; b.dataset.v = a; b.setAttribute("aria-pressed", "false");
+    b.onclick = () => { value = value === a ? null : a; paint(); };
+    box.append(b);
+  });
+  return { get: () => value, set: v => { value = LIFE_AREAS.includes(v) ? v : null; paint(); } };
+}

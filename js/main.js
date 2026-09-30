@@ -6,6 +6,7 @@ import * as mood from "./mood.js";
 import * as thoughts from "./thoughts.js";
 import * as triangle from "./triangle.js";
 import * as activities from "./activities.js";
+import * as planner from "./planner.js";
 import * as backup from "./backup.js";
 import * as support from "./support.js";
 import * as todayTab from "./today.js";
@@ -15,7 +16,7 @@ import * as look from "./lookforward.js";
 
 const TABS = ["today", "joy", "look", "mood", "thought", "tri", "act"];
 const SUBPAGES = ["joy", "look"]; // opened from Today; not in the tab bar
-const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities];
+const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities, planner];
 let state;
 
 const ctx = {
@@ -41,6 +42,7 @@ const ctx = {
   joyReplace: list => joy.replaceAll(list),
   startJoyNote: (title, text) => joy.startNote(title, text),
   closeSettings: () => backup.closeSheet(),
+  logFromPlan: p => activities.prefill(p),
 };
 
 function renderAll() { sheets.forEach(s => s.render()); }

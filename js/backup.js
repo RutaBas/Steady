@@ -51,6 +51,7 @@ function counts() {
   $("counts").textContent = [n("mood", "check-in", "check-ins"), n("thoughts", "thought record", "thought records"),
     n("triangles", "triangle", "triangles"), n("activities", "activity", "activities"),
     n("plans", "thing to look forward to", "things to look forward to"),
+    n("planned", "planned activity", "planned activities"),
     `${j} Joy jar ${j === 1 ? "item" : "items"}`].join(" · ");
 }
 

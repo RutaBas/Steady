@@ -249,26 +249,56 @@
 
   <!-- ACTIVITIES -->
   <section class="tab" id="tab-act" role="tabpanel" aria-label="Activity log" hidden>
-    <div class="card">
-      <div>
-        <h2>Activity log</h2>
-        <p class="lede">Log what you did, even rest or scrolling. Rate pleasure and mastery (a sense of accomplishment) from 0 to 10.</p>
-      </div>
-      <div class="row">
-        <div class="field"><label for="a-date">Date</label><input type="date" id="a-date"></div>
-        <div class="field"><label for="a-block">Time</label><select id="a-block"></select></div>
-      </div>
-      <div class="field"><label for="a-what">What I did</label><input type="text" id="a-what" placeholder="e.g. walk by the lake"></div>
-      <div class="field"><label for="a-p">Pleasure</label><div class="range"><input type="range" id="a-p" min="0" max="10" value="5"><output for="a-p">5</output></div></div>
-      <div class="field"><label for="a-m">Mastery</label><div class="range"><input type="range" id="a-m" min="0" max="10" value="5"><output for="a-m">5</output></div></div>
-      <div class="actions"><button class="btn" id="a-save" type="button">Add activity</button></div>
+    <div class="seg" id="a-mode" role="group" aria-label="Log or plan">
+      <button type="button" data-mode="log" aria-pressed="true">Log</button>
+      <button type="button" data-mode="plan" aria-pressed="false">Plan</button>
     </div>
-    <div class="card">
-      <h3>What's been lifting you</h3>
-      <p class="lede flush">Your highest-scoring activities from the last 7 days. Try scheduling more of these.</p>
-      <div class="list" id="a-top"></div>
+
+    <div class="mode" id="a-logMode">
+      <div class="card">
+        <div>
+          <h2>Activity log</h2>
+          <p class="lede">Log what you did, even rest or scrolling. Rate pleasure and mastery (a sense of accomplishment) from 0 to 10.</p>
+        </div>
+        <div class="row">
+          <div class="field"><label for="a-date">Date</label><input type="date" id="a-date"></div>
+          <div class="field"><label for="a-block">Time</label><select id="a-block"></select></div>
+        </div>
+        <div class="field"><label for="a-what">What I did</label><input type="text" id="a-what" placeholder="e.g. walk by the lake"></div>
+        <div class="field"><span class="lbl" id="a-area-l">Life area <span class="hint">(optional)</span></span><div class="chips" id="a-area" role="group" aria-labelledby="a-area-l"></div></div>
+        <div class="field"><label for="a-p">Pleasure</label><span class="hint" id="a-expect" hidden></span><div class="range"><input type="range" id="a-p" min="0" max="10" value="5"><output for="a-p">5</output></div></div>
+        <div class="field"><label for="a-m">Mastery</label><div class="range"><input type="range" id="a-m" min="0" max="10" value="5"><output for="a-m">5</output></div></div>
+        <div class="actions"><button class="btn" id="a-save" type="button">Add activity</button></div>
+      </div>
+      <div class="card">
+        <h3>What's been lifting you</h3>
+        <p class="lede flush">Your highest-scoring activities from the last 7 days. Try scheduling more of these.</p>
+        <div class="list" id="a-top"></div>
+        <div class="insights" id="a-insights"></div>
+      </div>
+      <div class="field"><span class="lbl" id="a-daylabel">Logged for this day</span><div class="list" id="a-list"></div></div>
     </div>
-    <div class="field"><span class="lbl" id="a-daylabel">Logged for this day</span><div class="list" id="a-list"></div></div>
+
+    <div class="mode" id="a-planMode" hidden>
+      <div class="card">
+        <div>
+          <h2>Plan something small</h2>
+          <p class="lede">Planning ahead is the heart of behavioral activation. Keep it small: a 10-minute walk counts.</p>
+        </div>
+        <div class="field"><label for="p-what">What I'll do</label><input type="text" id="p-what" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="e.g. walk around the block"></div>
+        <div class="row">
+          <div class="field"><label for="p-date">Day</label><input type="date" id="p-date"></div>
+          <div class="field"><label for="p-block">Time</label><select id="p-block"></select></div>
+        </div>
+        <div class="field"><span class="lbl" id="p-area-l">Life area <span class="hint">(optional)</span></span><div class="chips" id="p-area" role="group" aria-labelledby="p-area-l"></div></div>
+        <div class="field"><span class="lbl" id="p-expect-l">How much do you think you'll enjoy it?</span>
+          <div class="range skipped" id="p-expectWrap"><input type="range" id="p-expect" min="0" max="10" value="5" aria-labelledby="p-expect-l"><output for="p-expect">5</output></div>
+          <span class="hint" id="p-expectHint">Optional. Move the slider to guess. <button type="button" class="linkbtn" id="p-expectSkip" hidden>Skip</button></span>
+        </div>
+        <div class="actions"><button class="btn" id="p-add" type="button">Add plan</button></div>
+      </div>
+      <div class="field" id="p-listWrap" hidden><span class="lbl">Coming up</span><div class="look-list" id="p-list"></div></div>
+    </div>
   </section>
 
   <p class="crisis">If you're in crisis or feel unsafe, <a href="tel:988">call</a> or <a href="sms:988">text</a> <b>988</b> any time.</p>
