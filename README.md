@@ -1,6 +1,6 @@
 # Steady
 
-A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a gentle "How are you arriving?" question that points you to the right worksheet, today's status with a mini chart of your week, and cards for the four worksheets:
+A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a countdown to the next thing you're looking forward to, a gentle "How are you arriving?" question that points you to the right worksheet, today's status with a mini chart of your week, and cards for the four worksheets:
 
 - **Mood check-in**: mood 1–10, sleep, time outside, "Today I…" toggles (add up to 8 of your own, like *played guitar*) and a note, with a chart and insights
 - **Thought record**: 7 steps, from the automatic thought to a balanced thought
@@ -69,6 +69,16 @@ Open it from the **Today** screen. Save **photos**, **notes** and **links** that
 - Links must be web links (https://…) and open in Safari.
 - Everything stays on your phone and is included in **Export backup file**. The text backup doesn't include the Joy jar, and restoring one leaves your jar as it is.
 
+## Look forward to
+
+Having something good coming up can lift the days before it, and depression tends to make that harder to picture, so Steady helps you keep a short list. Tap **Add** on the **Today** card and enter a name and a date: *coffee with Mia*, *a new episode*, *a long bath*. Small things count.
+
+- **Today** shows the soonest one with a countdown ("Tomorrow", "Today!", "in 3 days") and "+N more" when there are others. Tap it to see the full list.
+- The day after, Today asks **"How was it?"** with **Add to Joy jar** (opens a note filled in with the name and date, so you can add how it went) or **Dismiss**. It only asks about the last week. A plan that got cancelled is just dismissed or deleted; nothing counts as missed.
+- Past items move to a **Past** list, and each still has **Add to Joy jar**.
+- Don't want it? **Settings** (the gear) → **Look forward to** → turn off **Show on Today**. Your list is kept, and **Open list** still opens it.
+- The list is saved on your phone and included in both backup types.
+
 ## Optional: a support person
 
 In **Settings** (the gear), under **Support person**, you can add someone you trust: a name, and optionally a phone number.
@@ -99,6 +109,7 @@ js/theme.js             applies Auto/Light/Dark before first paint
 js/today.js             Today tab: greeting, "How are you arriving?", status, week mini chart
 js/chips.js             your own "Today I…" options
 js/joy.js               Joy jar: add/view/delete photos, notes, links; photo shrinking; backup conversion
+js/lookforward.js       Look forward to: Today countdown card, list screen, "How was it?" nudge
 js/logic.js             pure logic (insights, backup format, Health clipboard parsing), unit-tested
 js/store.js             IndexedDB storage + one-time migration from the prototype's localStorage
 js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows)
@@ -113,7 +124,7 @@ netlify.toml            hosting config and security headers
 tests/                  node --test unit tests
 ```
 
-Data shape (also the backup format's `data` field): `{mood:[], thoughts:[], triangles:[], activities:[]}`.
+Data shape (also the backup format's `data` field): `{mood:[], thoughts:[], triangles:[], activities:[], plans:[]}`. Older backups without `plans` restore with an empty list.
 
 ## License
 
