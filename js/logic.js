@@ -374,3 +374,32 @@ export function predictionInsight(activities) {
   const better = w.filter(a => a.p > a.expect).length;
   return w.length >= 3 && better > w.length / 2 ? { better, total: w.length } : null;
 }
+
+/* ---------- Three good things (weekly) ---------- */
+
+const GOOD_WINDOW = 3, GOOD_MAX = 200;
+
+export function normalizeGoodSettings(o) {
+  const d = Math.round(Number(o?.day));
+  return { on: o?.on !== false, day: Number.isInteger(d) && d >= 0 && d <= 6 ? d : 0 };
+}
+
+/* The date of the most recent reminder day (0 = Sunday) on or before today. */
+export function weekKey(todayIso, promptDay) {
+  return addDays(todayIso, -((parseIso(todayIso).getDay() - promptDay + 7) % 7));
+}
+
+export function showGoodCard(todayIso, settings, entries, dismissed) {
+  if (!settings.on) return false;
+  const key = weekKey(todayIso, settings.day);
+  return daysUntil(key, todayIso) > -GOOD_WINDOW && dismissed !== key && !entries.some(e => e.week === key);
+}
+
+export function saveGoodWeek(list, week, rows) {
+  const clip = v => String(v ?? "").trim().slice(0, GOOD_MAX);
+  const items = rows.map(r => ({ text: clip(r?.text), why: clip(r?.why) })).filter(r => r.text).slice(0, 3);
+  if (!items.length) return { error: "Write at least one good thing." };
+  const old = list.find(e => e.week === week);
+  const entry = { id: old?.id || newId(), week, items, created: old?.created || new Date().toISOString() };
+  return { good: [entry, ...list.filter(e => e.week !== week)].sort((a, b) => (a.week < b.week ? 1 : a.week > b.week ? -1 : 0)) };
+}
