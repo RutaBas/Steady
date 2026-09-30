@@ -1,7 +1,7 @@
 /* Pure logic: no DOM, no storage. Unit-tested in tests/logic.test.js. */
 
-export const KEYS = ["mood", "thoughts", "triangles", "activities", "plans"];
-export const blank = () => ({ mood: [], thoughts: [], triangles: [], activities: [], plans: [] });
+export const KEYS = ["mood", "thoughts", "triangles", "activities", "plans", "planned", "good", "kind"];
+export const blank = () => ({ mood: [], thoughts: [], triangles: [], activities: [], plans: [], planned: [], good: [], kind: [] });
 
 const pad = n => String(n).padStart(2, "0");
 export const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
@@ -47,7 +47,7 @@ export function parseBackup(text) {
   if (!o || typeof o !== "object") throw new Error("invalid");
   const d = o.data && typeof o.data === "object" ? o.data : o;
   if (!Array.isArray(d.mood) || !Array.isArray(d.thoughts)) throw new Error("invalid");
-  for (const k of ["triangles", "activities"]) if (k in d && !Array.isArray(d[k])) throw new Error("invalid");
+  for (const k of KEYS.slice(2)) if (k in d && !Array.isArray(d[k])) throw new Error("invalid");
   return normalizeState(d);
 }
 
@@ -321,4 +321,56 @@ export function addPlan(plans, name, date, todayIso) {
   if (plans.some(p => p.date === date && p.name.toLowerCase() === n.toLowerCase())) return { error: "That's already on your list." };
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   return { plans: [...plans, { id, name: n, date, created: new Date().toISOString() }] };
+}
+
+/* ---------- Activity scheduling (behavioral activation) ---------- */
+
+export const BLOCKS = ["6–8 am", "8–10 am", "10 am–12 pm", "12–2 pm", "2–4 pm", "4–6 pm", "6–8 pm", "8–10 pm", "10 pm–12 am", "Overnight"];
+export const ANY_TIME = "Any time";
+export const LIFE_AREAS = ["Relationships", "Health & body", "Fun & creativity", "Work & learning", "Daily responsibilities"];
+export const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const PLANNED_MAX = 80, MISSED_WINDOW = 3;
+const blockRank = b => (b === ANY_TIME ? -1 : BLOCKS.indexOf(b));
+const byDateThenBlock = (a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : blockRank(a.block) - blockRank(b.block));
+
+export function addPlanned(list, { what, date, block, area, expect } = {}, todayIso) {
+  const w = String(what ?? "").trim().slice(0, PLANNED_MAX);
+  if (!w) return { error: "Write what you'll do first." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return { error: "Pick a day." };
+  if (date < todayIso) return { error: "Pick today or a later day." };
+  const item = { id: newId(), what: w, date, block: BLOCKS.includes(block) ? block : ANY_TIME, created: new Date().toISOString() };
+  if (LIFE_AREAS.includes(area)) item.area = area;
+  if (Number.isInteger(expect) && expect >= 0 && expect <= 10) item.expect = expect;
+  return { planned: [...list, item] };
+}
+
+export const plannedFor = (list, day) => list.filter(p => p.date === day).sort(byDateThenBlock);
+export const upcomingPlanned = (list, todayIso) => list.filter(p => p.date >= todayIso).sort(byDateThenBlock);
+
+/* The one missed plan to ask about: most recent, dated 1–3 days ago. */
+export function plannedNudge(list, todayIso) {
+  return list.filter(p => p.date < todayIso && daysUntil(p.date, todayIso) >= -MISSED_WINDOW)
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))[0] || null;
+}
+
+export const prunePlanned = (list, todayIso) => list.filter(p => daysUntil(p.date, todayIso) >= -MISSED_WINDOW);
+
+export function missedLabel(date, todayIso, locale) {
+  if (daysUntil(date, todayIso) === -1) return "Yesterday's plan";
+  return parseIso(date).toLocaleDateString(locale, { weekday: "long" }) + "'s plan";
+}
+
+/* Logged activities with a life area in the last 7 days (today inclusive), most first. */
+export function areaCounts(activities, todayIso) {
+  const cut = addDays(todayIso, -6), n = {};
+  for (const a of activities) if (LIFE_AREAS.includes(a.area) && a.date >= cut && a.date <= todayIso) n[a.area] = (n[a.area] || 0) + 1;
+  return LIFE_AREAS.filter(k => n[k]).map(area => ({ area, n: n[area] })).sort((x, y) => y.n - x.n);
+}
+
+/* "Things went better than you expected": only when at least 3 predictions and most went better. */
+export function predictionInsight(activities) {
+  const w = activities.filter(a => typeof a.expect === "number");
+  const better = w.filter(a => a.p > a.expect).length;
+  return w.length >= 3 && better > w.length / 2 ? { better, total: w.length } : null;
 }
