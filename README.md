@@ -1,11 +1,14 @@
 # Steady
 
-A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a countdown to the next thing you're looking forward to, a gentle "How are you arriving?" question that points you to the right worksheet, today's status with a mini chart of your week, and cards for the four worksheets:
+A private CBT worksheet app for iPhone, installed from Safari to the Home Screen. It opens on a **Today** screen: a greeting, a countdown to the next thing you're looking forward to, a weekly "Three good things?" card, a gentle "How are you arriving?" question that points you to the right worksheet, today's status and plans with a mini chart of your week, and cards for five worksheets:
 
 - **Mood check-in**: mood 1–10, sleep, time outside, "Today I…" toggles (add up to 8 of your own, like *played guitar*) and a note, with a chart and insights
 - **Thought record**: 7 steps, from the automatic thought to a balanced thought
 - **CBT triangle**: thoughts, behaviors and feelings, then one small thing to try
-- **Activity log**: pleasure and mastery ratings, plus your top activities from the last 7 days
+- **Activity log**: log what you did with pleasure and mastery ratings, or **plan** something small ahead, with life areas and a guess at how much you'll enjoy it
+- **Self-compassion break**: three short guided steps for when you're being hard on yourself
+
+Extras on Today: the **Joy jar**, **Look forward to** and **Three good things**. Everything is optional, and nothing is ever counted against you.
 
 **Privacy:** entries are stored only in the browser on your phone (IndexedDB). There are no accounts, no analytics and no server. The site's Content-Security-Policy blocks the page from contacting any other server. Backups are files you export yourself.
 
@@ -83,18 +86,34 @@ Having something good coming up can lift the days before it, and depression tend
 
 On the **Activities** tab, switch to **Plan** to plan a small activity for today or a later day, with an optional time, life area and a guess at how much you'll enjoy it. Planning ahead is the core of behavioral activation, which works about as well as full CBT for depression (Cuijpers et al., 2007; Ekers et al., 2014).
 
-- Today's plans show on **Today** with **Did it**, which opens the log with the activity filled in.
+- **Life areas** (optional): Relationships, Health & body, Fun & creativity, Work & learning, Daily responsibilities. You can tag logged activities too.
+- **Enjoyment guess** (optional): move the slider to guess 0–10, or leave it on "–" to skip.
+- Upcoming plans are listed under **Coming up**, each with a delete button.
+- Today's plans show on **Today** with **Did it**, which opens the log with the activity filled in and your guess shown above the Pleasure slider. Saving logs it and removes the plan; leaving without saving keeps it.
 - If a plan didn't happen, Today shows a gentle line: **Try today** or **Let it go**. Plans older than 3 days disappear quietly. Nothing is counted.
-- Tagging activities with a life area shows which parts of your week have had attention. Your guesses are compared with how it actually went: depression often underestimates how much you'll enjoy things.
-- Plans, good things and self-compassion breaks are included in **Export backup file**.
+- Under **What's been lifting you**, two lines appear once there's enough data: **This week** (how many activities in each life area) and **Predictions** ("Things went better than you expected 4 of 5 times"). The Predictions line only shows when that's true more often than not: depression often underestimates how much you'll enjoy things.
 
 ## Three good things
 
-Once a week (Sunday by default; change it in **Settings**), Today asks for up to three good things from your week and why they happened. Writing down good things and their causes has reduced depressive symptoms in studies (Seligman et al., 2005), and doing it weekly works better than more often (Lyubomirsky et al., 2005). One is enough. Any item can go into the Joy jar.
+Once a week, Today asks for up to three good things from your week and why they happened. Writing down good things and their causes has reduced depressive symptoms in studies (Seligman et al., 2005), and doing it weekly works better than more often (Lyubomirsky et al., 2005).
+
+- The card appears on your reminder day and stays for 3 days, until you tap **Write them** or **Not this week**.
+- One good thing is enough. The "Why did it happen?" line under each is optional, but it's the part the research says helps most.
+- Reopening the screen in the same week lets you edit that week's entry. Past weeks are listed below it, and any item can go into the Joy jar.
+- **Settings** (the gear) → **Three good things**: change the reminder day (Sunday by default), turn **Remind me on Today** off, or **Open** the screen. Your entries are kept when the reminder is off.
 
 ## Self-compassion break
 
-A three-step exercise for when you're being hard on yourself, after Kristin Neff: notice that it's hard, remember others feel this too, and write what you'd say to a friend. Self-compassion is linked to lower depression (MacBeth & Gumley, 2012), and self-compassion exercises reduce it (Ferrari et al., 2019). Open it from Today, from **Heavy / low**, or after a thought record that still feels heavy. Your past breaks are saved, and your kind words can go into the Joy jar.
+A three-step exercise for when you're being hard on yourself, after Kristin Neff. Self-compassion is linked to lower depression (MacBeth & Gumley, 2012), and self-compassion exercises reduce it (Ferrari et al., 2019).
+
+1. **Notice** that this is hard, with an optional line for what's hard right now.
+2. **You're not alone**: other people feel this too.
+3. **Kindness**: write what you'd say to a friend feeling this way.
+
+- Open it from its card on **Today**, from **Heavy / low**, or from the "Still feels heavy?" card after a thought record whose emotion barely dropped.
+- **Done** saves the break under **Past breaks** (nothing is saved if you didn't write anything). **Save to Joy jar too** also puts your kind words in the jar for a future hard day.
+
+Plans, good things and self-compassion breaks are saved on your phone and included in both backup types. The good-things reminder day and on/off setting stay on the device and aren't part of backups.
 
 ## Optional: a support person
 
@@ -127,9 +146,12 @@ js/today.js             Today tab: greeting, "How are you arriving?", status, we
 js/chips.js             your own "Today I…" options
 js/joy.js               Joy jar: add/view/delete photos, notes, links; photo shrinking; backup conversion
 js/lookforward.js       Look forward to: Today countdown card, list screen, "How was it?" nudge
-js/logic.js             pure logic (insights, backup format, Health clipboard parsing), unit-tested
+js/planner.js           Plan mode on Activities, today's plans on Today, missed-plan line
+js/goodthings.js        Three good things: weekly Today card, screen, past weeks, settings
+js/kindness.js          Self-compassion break: three steps, past breaks
+js/logic.js             pure logic (insights, planning, weeks, backup format, Health clipboard parsing), unit-tested
 js/store.js             IndexedDB storage + one-time migration from the prototype's localStorage
-js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows)
+js/ui.js                shared DOM helpers (toast, inline delete confirmation, history rows, life area chips)
 js/mood.js, thoughts.js, triangle.js, activities.js   one module per worksheet
 js/backup.js            backup sheet: export/import, text fallback, delete all, guides
 js/support.js           support person: low-day prompt, Share my week
@@ -141,7 +163,7 @@ netlify.toml            hosting config and security headers
 tests/                  node --test unit tests
 ```
 
-Data shape (also the backup format's `data` field): `{mood:[], thoughts:[], triangles:[], activities:[], plans:[]}`. Older backups without `plans` restore with an empty list.
+Data shape (also the backup format's `data` field): `{mood:[], thoughts:[], triangles:[], activities:[], plans:[], planned:[], good:[], kind:[]}`. `plans` is Look forward to; `planned` is Plan mode. Older backups without the newer lists restore them as empty.
 
 ## License
 
