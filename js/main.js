@@ -14,10 +14,11 @@ import * as chips from "./chips.js";
 import * as joy from "./joy.js";
 import * as look from "./lookforward.js";
 import * as good from "./goodthings.js";
+import * as kindness from "./kindness.js";
 
-const TABS = ["today", "joy", "look", "good", "mood", "thought", "tri", "act"];
-const SUBPAGES = ["joy", "look", "good"]; // opened from Today; not in the tab bar
-const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities, planner, good];
+const TABS = ["today", "joy", "look", "good", "kind", "mood", "thought", "tri", "act"];
+const SUBPAGES = ["joy", "look", "good", "kind"]; // opened from Today; not in the tab bar
+const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities, planner, good, kindness];
 let state;
 
 const ctx = {
@@ -41,6 +42,7 @@ const ctx = {
   openJoyRandom: () => joy.openRandom(),
   joyExport: () => joy.exportItems(),
   joyReplace: list => joy.replaceAll(list),
+  openKind: () => kindness.open(),
   startJoyNote: (title, text) => joy.startNote(title, text),
   closeSettings: () => backup.closeSheet(),
   logFromPlan: p => activities.prefill(p),

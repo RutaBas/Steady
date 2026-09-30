@@ -142,6 +142,39 @@
     <div class="field"><span class="lbl">Weeks</span><div class="look-list" id="goodPast"></div></div>
   </section>
 
+  <!-- SELF-COMPASSION BREAK (opened from Today; not in the tab bar) -->
+  <section class="tab" id="tab-kind" role="tabpanel" aria-label="Self-compassion break" hidden>
+    <div class="actions"><button type="button" class="btn ghost small" id="kindBack">‹ Today</button></div>
+    <div>
+      <h2>Self-compassion break</h2>
+      <p class="lede">Three short steps for when you're being hard on yourself. Go slowly.</p>
+    </div>
+    <div class="card">
+      <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="kind-step" aria-live="polite">
+        <h3>Notice</h3>
+        <p>This is a moment of suffering. It's hard right now.</p>
+        <span class="hint">A hand on your chest can help, if you like.</span>
+        <div class="field"><label for="kindHard">What's hard right now? <span class="hint">(optional)</span></label><textarea id="kindHard" maxlength="500"></textarea></div>
+      </div>
+      <div class="kind-step" aria-live="polite" hidden>
+        <h3>You're not alone</h3>
+        <p>Other people feel this too. Struggling is part of being human, not a sign that something's wrong with you.</p>
+      </div>
+      <div class="kind-step" aria-live="polite" hidden>
+        <h3>Kindness</h3>
+        <div class="field"><label for="kindWords">What would you say to a friend feeling this way?</label><textarea id="kindWords" maxlength="500" placeholder="You're doing the best you can…"></textarea></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="kindPrev" hidden>Back</button>
+        <button type="button" class="btn" id="kindNext">Next</button>
+        <button type="button" class="btn" id="kindDone" hidden>Done</button>
+        <button type="button" class="btn ghost" id="kindJoy" hidden>Save to Joy jar too</button>
+      </div>
+    </div>
+    <div class="field" id="kindPastWrap"><span class="lbl">Past breaks</span><div class="list" id="kindList"></div></div>
+  </section>
+
   <!-- MOOD -->
   <section class="tab" id="tab-mood" role="tabpanel" aria-label="Mood" hidden>
     <div class="card">

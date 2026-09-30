@@ -53,6 +53,7 @@ function counts() {
     n("plans", "thing to look forward to", "things to look forward to"),
     n("planned", "planned activity", "planned activities"),
     n("good", "good-things week", "good-things weeks"),
+    n("kind", "self-compassion break", "self-compassion breaks"),
     `${j} Joy jar ${j === 1 ? "item" : "items"}`].join(" · ");
 }
 

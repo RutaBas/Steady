@@ -403,3 +403,16 @@ export function saveGoodWeek(list, week, rows) {
   const entry = { id: old?.id || newId(), week, items, created: old?.created || new Date().toISOString() };
   return { good: [entry, ...list.filter(e => e.week !== week)].sort((a, b) => (a.week < b.week ? 1 : a.week > b.week ? -1 : 0)) };
 }
+
+/* ---------- Self-compassion break ---------- */
+
+const KIND_MAX = 500;
+
+/* A saved break, or null when both fields are empty (nothing worth keeping). */
+export function makeBreak(hard, words, date) {
+  const h = String(hard ?? "").trim().slice(0, KIND_MAX), w = String(words ?? "").trim().slice(0, KIND_MAX);
+  return h || w ? { id: newId(), date, hard: h, words: w } : null;
+}
+
+/* A thought record where the balanced thought didn't bring the emotion down by 10 points. */
+export const stillHeavy = r => !!r.balanced && r.emoInt - r.emoNow < 10;
