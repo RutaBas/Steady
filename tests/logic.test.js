@@ -7,13 +7,13 @@ import {
 
 const m = (date, mood, extra = {}) => ({ id: date, date, mood, sleep: null, outside: null, moved: false, talked: false, enjoyed: false, note: "", ...extra });
 
-test("blank has the four arrays", () => {
-  assert.deepEqual(blank(), { mood: [], thoughts: [], triangles: [], activities: [] });
+test("blank has the five arrays", () => {
+  assert.deepEqual(blank(), { mood: [], thoughts: [], triangles: [], activities: [], plans: [] });
 });
 
 test("normalizeState fills missing arrays and drops non-array keys", () => {
   const s = normalizeState({ mood: [m("2026-01-01", 5)], thoughts: [], junk: 1, triangles: "x" });
-  assert.deepEqual(Object.keys(s).sort(), ["activities", "mood", "thoughts", "triangles"]);
+  assert.deepEqual(Object.keys(s).sort(), ["activities", "mood", "plans", "thoughts", "triangles"]);
   assert.equal(s.mood.length, 1);
   assert.deepEqual(s.triangles, []);
   assert.throws(() => normalizeState(null));

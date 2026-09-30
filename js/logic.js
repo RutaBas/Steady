@@ -1,7 +1,7 @@
 /* Pure logic: no DOM, no storage. Unit-tested in tests/logic.test.js. */
 
-export const KEYS = ["mood", "thoughts", "triangles", "activities"];
-export const blank = () => ({ mood: [], thoughts: [], triangles: [], activities: [] });
+export const KEYS = ["mood", "thoughts", "triangles", "activities", "plans"];
+export const blank = () => ({ mood: [], thoughts: [], triangles: [], activities: [], plans: [] });
 
 const pad = n => String(n).padStart(2, "0");
 export const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
@@ -9,7 +9,7 @@ export const parseIso = s => { const [y, m, d] = s.split("-").map(Number); retur
 export const today = () => iso(new Date());
 export const addDays = (s, n) => { const d = parseIso(s); d.setDate(d.getDate() + n); return iso(d); };
 
-/* Merge with blank() and keep only the four known array keys. */
+/* Merge with blank() and keep only the known array keys. */
 export function normalizeState(obj) {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw new Error("invalid");
   const s = blank();
@@ -287,4 +287,38 @@ export function pickJoy(items, lastId, rand = Math.random) {
   if (!items.length) return null;
   const pool = items.length > 1 ? items.filter(i => i.id !== lastId) : items;
   return pool[Math.min(pool.length - 1, Math.floor(rand() * pool.length))];
+}
+
+/* ---------- Look forward to: dated things to look forward to ---------- */
+
+const NUDGE_WINDOW = 7, PLAN_MAX = 80;
+
+/* Whole calendar days from today to date (negative if past). UTC math sidesteps DST. */
+export function daysUntil(date, todayIso) {
+  const u = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((u(date) - u(todayIso)) / 86400000);
+}
+
+export const untilLabel = n => (n === 0 ? "Today!" : n === 1 ? "Tomorrow" : `in ${n} days`);
+
+/* Today counts as upcoming. Upcoming soonest first, past most recent first. */
+export function splitPlans(plans, todayIso) {
+  const upcoming = plans.filter(p => p.date >= todayIso).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const past = plans.filter(p => p.date < todayIso).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  return { upcoming, past };
+}
+
+/* The one past item to ask "How was it?" about: most recent, within a week, not yet answered. */
+export function planNudge(plans, todayIso) {
+  return splitPlans(plans, todayIso).past.find(p => !p.done && daysUntil(p.date, todayIso) >= -NUDGE_WINDOW) || null;
+}
+
+export function addPlan(plans, name, date, todayIso) {
+  const n = String(name ?? "").trim().slice(0, PLAN_MAX);
+  if (!n) return { error: "Give it a name first." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return { error: "Pick a date." };
+  if (date < todayIso) return { error: "Pick today or a later date." };
+  if (plans.some(p => p.date === date && p.name.toLowerCase() === n.toLowerCase())) return { error: "That's already on your list." };
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  return { plans: [...plans, { id, name: n, date, created: new Date().toISOString() }] };
 }

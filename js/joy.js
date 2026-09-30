@@ -84,6 +84,15 @@ function startDraft(d) {
   (d.type === "link" ? $("joyUrl") : $("joyTitle")).focus({ preventScroll: true });
 }
 
+/* Open the jar with a prefilled note (used by Look forward to). */
+export function startNote(title, text) {
+  ctx.showTab("joy");
+  startDraft({ type: "note" });
+  $("joyTitle").value = title;
+  $("joyText").value = text;
+  const t = $("joyText"); t.focus({ preventScroll: true }); t.setSelectionRange(t.value.length, t.value.length);
+}
+
 function endDraft() {
   if (draft?.preview) URL.revokeObjectURL(draft.preview);
   draft = null;

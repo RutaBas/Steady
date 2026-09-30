@@ -44,6 +44,8 @@
       <p class="lede">This is your space. Take whatever you need from it today.</p>
     </div>
 
+    <div class="card look-card" id="lookCard" aria-label="Look forward to"></div>
+
     <div class="card">
       <h3>How are you arriving?</h3>
       <div class="arrive" id="arrive" role="group" aria-label="How are you arriving?">
@@ -105,6 +107,22 @@
       <div class="actions"><button type="button" class="btn" id="joySave">Save to jar</button><button type="button" class="btn ghost" id="joyCancel">Cancel</button></div>
     </div>
     <div class="joy-grid" id="joyGrid"></div>
+  </section>
+
+  <!-- LOOK FORWARD TO (opened from Today; not in the tab bar) -->
+  <section class="tab" id="tab-look" role="tabpanel" aria-label="Look forward to" hidden>
+    <div class="actions"><button type="button" class="btn ghost small" id="lookBack">‹ Today</button></div>
+    <div>
+      <h2>Look forward to</h2>
+      <p class="lede">Having something good coming up can lift the days before it. Small things count.</p>
+    </div>
+    <div class="card">
+      <div class="field"><label for="lookName">What is it?</label><input type="text" id="lookName" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="e.g. coffee with Mia, a new episode, a long bath"></div>
+      <div class="field"><label for="lookDate">When</label><input type="date" id="lookDate"></div>
+      <div class="actions"><button type="button" class="btn" id="lookAdd">Add</button></div>
+    </div>
+    <div class="field"><span class="lbl">Coming up</span><div class="look-list" id="lookUpcoming"></div></div>
+    <div class="field" id="lookPastWrap" hidden><span class="lbl">Past</span><div class="look-list" id="lookPast"></div></div>
   </section>
 
   <!-- MOOD -->
@@ -277,6 +295,11 @@
         <button type="button" data-theme-opt="dark" aria-pressed="false">Dark</button>
       </div>
       <span class="hint">Auto follows your iPhone's setting.</span>
+    </div>
+
+    <div class="field"><span class="lbl">Look forward to</span>
+      <div class="actions"><button type="button" class="chip" id="lookShow" aria-pressed="true">Show on Today</button><button type="button" class="btn ghost small" id="lookOpen">Open list</button></div>
+      <span class="hint">Your list is kept when this is off.</span>
     </div>
 
     <hr>

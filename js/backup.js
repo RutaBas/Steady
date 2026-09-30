@@ -37,7 +37,7 @@ export async function openSheet(sectionId) {
   }
 }
 
-function closeSheet() {
+export function closeSheet() {
   $("sheet").hidden = true;
   document.body.style.overflow = "";
   cancelPending();
@@ -50,6 +50,7 @@ function counts() {
   const n = (k, one, many) => `${S[k].length} ${S[k].length === 1 ? one : many}`;
   $("counts").textContent = [n("mood", "check-in", "check-ins"), n("thoughts", "thought record", "thought records"),
     n("triangles", "triangle", "triangles"), n("activities", "activity", "activities"),
+    n("plans", "thing to look forward to", "things to look forward to"),
     `${j} Joy jar ${j === 1 ? "item" : "items"}`].join(" · ");
 }
 

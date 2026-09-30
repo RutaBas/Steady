@@ -1,4 +1,4 @@
-/* Boot: load on-device state, wire the Today tab, four worksheets and settings sheet, register the service worker. */
+/* Boot: load on-device state, wire the Today tab and its sub-pages, four worksheets and settings sheet, register the service worker. */
 import { today } from "./logic.js";
 import { loadState, saveState, requestPersist } from "./store.js";
 import { $, toast, wireRanges } from "./ui.js";
@@ -11,9 +11,11 @@ import * as support from "./support.js";
 import * as todayTab from "./today.js";
 import * as chips from "./chips.js";
 import * as joy from "./joy.js";
+import * as look from "./lookforward.js";
 
-const TABS = ["today", "joy", "mood", "thought", "tri", "act"];
-const sheets = [todayTab, joy, mood, thoughts, triangle, activities];
+const TABS = ["today", "joy", "look", "mood", "thought", "tri", "act"];
+const SUBPAGES = ["joy", "look"]; // opened from Today; not in the tab bar
+const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities];
 let state;
 
 const ctx = {
@@ -37,6 +39,8 @@ const ctx = {
   openJoyRandom: () => joy.openRandom(),
   joyExport: () => joy.exportItems(),
   joyReplace: list => joy.replaceAll(list),
+  startJoyNote: (title, text) => joy.startNote(title, text),
+  closeSettings: () => backup.closeSheet(),
 };
 
 function renderAll() { sheets.forEach(s => s.render()); }
@@ -46,10 +50,10 @@ function setTodayLabel() {
 }
 
 function showTab(name) {
-  const navName = name === "joy" ? "today" : name; // the Joy jar opens from Today
+  const navName = SUBPAGES.includes(name) ? "today" : name;
   document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === navName; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
-  if (name === "today") todayTab.render(); // status may have changed on another tab
+  if (name === "today") { todayTab.render(); look.render(); } // status may have changed on another tab
   window.scrollTo(0, 0);
 }
 
@@ -113,7 +117,7 @@ function registerSW() {
 async function boot() {
   setTodayLabel();
   state = await loadState();
-  await Promise.all([support.load(), chips.load(), joy.load()]);
+  await Promise.all([support.load(), chips.load(), joy.load(), look.load()]);
   wireRanges();
   sheets.forEach(s => s.init(ctx));
   backup.init(ctx);
