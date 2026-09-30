@@ -33,6 +33,12 @@ function choose(key) {
   const row = document.createElement("div"); row.className = "actions";
   r.buttons.forEach(([label, tab, style]) => row.append(goBtn(label, tab, style)));
   reply.append(p, row);
+  if (key === "low") {
+    const k = document.createElement("button");
+    k.type = "button"; k.className = "btn ghost small start"; k.textContent = "Be kind to yourself";
+    k.onclick = () => ctx.openKind();
+    reply.append(k);
+  }
   if (key === "low" && ctx.joyCount() > 0) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "btn ghost small start"; b.textContent = "See something that made you smile";
@@ -51,7 +57,7 @@ function choose(key) {
 export function init(c) {
   ctx = c;
   document.querySelectorAll("#arrive .chip").forEach(b => (b.onclick = () => choose(b.dataset.arrive)));
-  document.querySelectorAll(".sheetcard").forEach(b => (b.onclick = () => ctx.showTab(b.dataset.go)));
+  document.querySelectorAll(".sheetcard").forEach(b => (b.onclick = () => (b.dataset.go === "kind" ? ctx.openKind() : ctx.showTab(b.dataset.go))));
 }
 
 function line(text, btn) {

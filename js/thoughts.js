@@ -1,5 +1,5 @@
 /* Thought record: 7 steps; history shows how much the emotion dropped. */
-import { today } from "./logic.js";
+import { today, stillHeavy } from "./logic.js";
 import { $, uid, toast, setRange, entry, emptyMsg } from "./ui.js";
 
 let ctx;
@@ -8,19 +8,22 @@ const fields = ["t-sit", "t-thought", "t-emo", "t-for", "t-against", "t-bal"];
 function clear() {
   fields.forEach(i => ($(i).value = ""));
   setRange("t-belief", 70); setRange("t-emoInt", 70); setRange("t-balBelief", 50); setRange("t-emoNow", 50);
+  $("t-heavy").hidden = true;
 }
 
 export function init(c) {
   ctx = c;
   $("t-clear").onclick = clear;
+  $("t-heavyGo").onclick = () => ctx.openKind();
   $("t-save").onclick = async () => {
     if (!$("t-thought").value.trim() && !$("t-sit").value.trim()) { toast("Write the situation or the thought first"); return; }
-    ctx.state.thoughts.unshift({
+    const rec = {
       id: uid(), date: today(), situation: $("t-sit").value.trim(), thought: $("t-thought").value.trim(), belief: +$("t-belief").value,
       emotion: $("t-emo").value.trim(), emoInt: +$("t-emoInt").value, evFor: $("t-for").value.trim(), evAgainst: $("t-against").value.trim(),
       balanced: $("t-bal").value.trim(), balBelief: +$("t-balBelief").value, emoNow: +$("t-emoNow").value,
-    });
-    if (await ctx.persist()) { toast("Thought record saved"); clear(); }
+    };
+    ctx.state.thoughts.unshift(rec);
+    if (await ctx.persist()) { toast("Thought record saved"); clear(); $("t-heavy").hidden = !stillHeavy(rec); }
     render();
   };
 }

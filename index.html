@@ -83,6 +83,7 @@
         <button type="button" class="sheetcard" data-go="thought"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><span><b>Thought record</b><small>When a thought won't let go</small></span></button>
         <button type="button" class="sheetcard" data-go="tri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M11 7l-5 9M13 7l5 9M7.3 18h9.4"/></svg><span><b>CBT triangle</b><small>See how thoughts, feelings and actions connect</small></span></button>
         <button type="button" class="sheetcard" data-go="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span><b>Activity log</b><small>Notice what lifts you, even a little</small></span></button>
+        <button type="button" class="sheetcard" data-go="kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span><b>Self-compassion break</b><small>When you're being hard on yourself</small></span></button>
       </div>
     </div>
   </section>
@@ -265,6 +266,10 @@
           <div class="range"><input type="range" id="t-emoNow" min="0" max="100" step="5" value="50" aria-label="Emotion intensity now"><output for="t-emoNow">50%</output></div></div></div>
       </div>
       <div class="actions"><button class="btn" id="t-save" type="button">Save thought record</button><button class="btn ghost" id="t-clear" type="button">Clear</button></div>
+      <div class="reply" id="t-heavy" role="status" hidden>
+        <p>Still feels heavy? A self-compassion break can help.</p>
+        <div class="actions"><button type="button" class="btn small" id="t-heavyGo">Try it</button></div>
+      </div>
     </div>
     <div class="field"><span class="lbl">Past thought records</span><div class="list" id="t-list"></div></div>
   </section>
