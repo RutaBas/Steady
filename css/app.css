@@ -219,3 +219,11 @@ nav.tabs button[aria-selected=true]{color:var(--accent);background:var(--accent-
 .mode{display:flex;flex-direction:column;gap:16px}
 .range.skipped input{opacity:.4}
 .range.skipped output{color:var(--muted)}
+
+/* Three good things */
+.good-rows{display:flex;flex-direction:column;gap:14px}
+.good-row{display:flex;flex-direction:column;gap:6px}
+.good-why{font-size:.9rem}
+.good-item{display:flex;flex-direction:column;gap:4px;padding-top:8px;border-top:1px solid var(--line);min-width:0}
+.good-item>span{overflow-wrap:anywhere}
+.good-item .btn{align-self:flex-start}

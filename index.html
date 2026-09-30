@@ -45,6 +45,7 @@
     </div>
 
     <div class="card look-card" id="lookCard" aria-label="Look forward to"></div>
+    <div class="card look-card" id="goodCard" aria-label="Three good things" hidden></div>
 
     <div class="card">
       <h3>How are you arriving?</h3>
@@ -124,6 +125,21 @@
     </div>
     <div class="field"><span class="lbl">Coming up</span><div class="look-list" id="lookUpcoming"></div></div>
     <div class="field" id="lookPastWrap" hidden><span class="lbl">Past</span><div class="look-list" id="lookPast"></div></div>
+  </section>
+
+  <!-- THREE GOOD THINGS (opened from Today; not in the tab bar) -->
+  <section class="tab" id="tab-good" role="tabpanel" aria-label="Three good things" hidden>
+    <div class="actions"><button type="button" class="btn ghost small" id="goodBack">‹ Today</button></div>
+    <div>
+      <h2>Three good things</h2>
+      <p class="lede">Look back over your week. What went well, and why did it happen? Small counts: a good coffee, a text from a friend.</p>
+    </div>
+    <div class="card">
+      <span class="lbl" id="goodWeekLbl">This week</span>
+      <div class="good-rows" id="goodRows"></div>
+      <div class="actions"><button type="button" class="btn" id="goodSave">Save</button></div>
+    </div>
+    <div class="field"><span class="lbl">Weeks</span><div class="look-list" id="goodPast"></div></div>
   </section>
 
   <!-- MOOD -->
@@ -331,6 +347,12 @@
     <div class="field"><span class="lbl">Look forward to</span>
       <div class="actions"><button type="button" class="chip" id="lookShow" aria-pressed="true">Show on Today</button><button type="button" class="btn ghost small" id="lookOpen">Open list</button></div>
       <span class="hint">Your list is kept when this is off.</span>
+    </div>
+
+    <div class="field"><span class="lbl">Three good things</span>
+      <div class="actions"><button type="button" class="chip" id="goodRemind" aria-pressed="true">Remind me on Today</button><button type="button" class="btn ghost small" id="goodOpen">Open</button></div>
+      <div class="field"><label for="goodDay">Reminder day</label><select id="goodDay"></select></div>
+      <span class="hint">The reminder shows for 3 days, then waits for next week. Your entries are kept when it's off.</span>
     </div>
 
     <hr>

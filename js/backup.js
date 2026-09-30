@@ -52,6 +52,7 @@ function counts() {
     n("triangles", "triangle", "triangles"), n("activities", "activity", "activities"),
     n("plans", "thing to look forward to", "things to look forward to"),
     n("planned", "planned activity", "planned activities"),
+    n("good", "good-things week", "good-things weeks"),
     `${j} Joy jar ${j === 1 ? "item" : "items"}`].join(" · ");
 }
 

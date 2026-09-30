@@ -13,10 +13,11 @@ import * as todayTab from "./today.js";
 import * as chips from "./chips.js";
 import * as joy from "./joy.js";
 import * as look from "./lookforward.js";
+import * as good from "./goodthings.js";
 
-const TABS = ["today", "joy", "look", "mood", "thought", "tri", "act"];
-const SUBPAGES = ["joy", "look"]; // opened from Today; not in the tab bar
-const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities, planner];
+const TABS = ["today", "joy", "look", "good", "mood", "thought", "tri", "act"];
+const SUBPAGES = ["joy", "look", "good"]; // opened from Today; not in the tab bar
+const sheets = [todayTab, joy, look, mood, thoughts, triangle, activities, planner, good];
 let state;
 
 const ctx = {
@@ -55,7 +56,7 @@ function showTab(name) {
   const navName = SUBPAGES.includes(name) ? "today" : name;
   document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === navName; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
-  if (name === "today") { todayTab.render(); look.render(); planner.render(); } // status may have changed on another tab
+  if (name === "today") { todayTab.render(); look.render(); planner.render(); good.render(); } // status may have changed on another tab
   window.scrollTo(0, 0);
 }
 
@@ -119,7 +120,7 @@ function registerSW() {
 async function boot() {
   setTodayLabel();
   state = await loadState();
-  await Promise.all([support.load(), chips.load(), joy.load(), look.load()]);
+  await Promise.all([support.load(), chips.load(), joy.load(), look.load(), good.load()]);
   wireRanges();
   sheets.forEach(s => s.init(ctx));
   backup.init(ctx);

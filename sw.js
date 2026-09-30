@@ -22,6 +22,7 @@ const SHELL = [
   "js/joy.js",
   "js/lookforward.js",
   "js/planner.js",
+  "js/goodthings.js",
   "fonts/bricolage-latin.woff2",
   "fonts/bricolage-latin-ext.woff2",
   "fonts/lexend-latin.woff2",
