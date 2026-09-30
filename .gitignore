@@ -9,3 +9,6 @@ claude-code-handover.md
 # Steady backups contain your entries: never commit
 steady-backup-*.json
 *.json.bak
+
+# Private design specs and plans: keep local, never push
+docs/superpowers/
