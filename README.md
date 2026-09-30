@@ -79,6 +79,22 @@ Having something good coming up can lift the days before it, and depression tend
 - Don't want it? **Settings** (the gear) → **Look forward to** → turn off **Show on Today**. Your list is kept, and **Open list** still opens it.
 - The list is saved on your phone and included in both backup types.
 
+## Plan something small
+
+On the **Activities** tab, switch to **Plan** to plan a small activity for today or a later day, with an optional time, life area and a guess at how much you'll enjoy it. Planning ahead is the core of behavioral activation, which works about as well as full CBT for depression (Cuijpers et al., 2007; Ekers et al., 2014).
+
+- Today's plans show on **Today** with **Did it**, which opens the log with the activity filled in.
+- If a plan didn't happen, Today asks once: **Try today** or **Let it go**. Plans older than 3 days disappear quietly. Nothing is counted.
+- Tagging activities with a life area shows which parts of your week have had attention. Your guesses are compared with how it actually went: depression often underestimates how much you'll enjoy things.
+
+## Three good things
+
+Once a week (Sunday by default; change it in **Settings**), Today asks for up to three good things from your week and why they happened. Writing down good things and their causes has reduced depressive symptoms in studies (Seligman et al., 2005), and doing it weekly works better than more often (Lyubomirsky et al., 2005). One is enough. Any item can go into the Joy jar.
+
+## Self-compassion break
+
+A three-step exercise for when you're being hard on yourself, after Kristin Neff: notice that it's hard, remember others feel this too, and write what you'd say to a friend. Self-compassion is linked to lower depression (MacBeth & Gumley, 2012), and self-compassion exercises reduce it (Ferrari et al., 2019). Open it from Today, from **Heavy / low**, or after a thought record that still feels heavy. Your past breaks are saved, and your kind words can go into the Joy jar.
+
 ## Optional: a support person
 
 In **Settings** (the gear), under **Support person**, you can add someone you trust: a name, and optionally a phone number.

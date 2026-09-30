@@ -1,6 +1,6 @@
 /* Offline support: precache the whole app shell, serve cache-first, clean up old caches.
    Bump VERSION whenever any file below changes so phones pick up the update. */
-const VERSION = "steady-v5";
+const VERSION = "steady-v6";
 const SHELL = [
   "./",
   "index.html",
