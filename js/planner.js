@@ -78,6 +78,7 @@ function renderToday(t) {
 
 export function render() {
   const t = today();
+  ctx.state.planned = prunePlanned(ctx.state.planned, t); // in memory only; persisted on the next save
   $("p-date").min = t;
   if (!$("p-date").value || $("p-date").value < t) $("p-date").value = t;
   const up = upcomingPlanned(ctx.state.planned, t);

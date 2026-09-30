@@ -59,6 +59,7 @@ function showTab(name) {
   document.querySelectorAll("nav.tabs button").forEach(b => { const on = b.dataset.tab === navName; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll("section.tab").forEach(s => (s.hidden = s.id !== "tab-" + name));
   if (name === "today") { todayTab.render(); look.render(); planner.render(); good.render(); } // status may have changed on another tab
+  if (name !== "act") activities.forgetPlan(); // leaving Activities without saving keeps the plan
   window.scrollTo(0, 0);
 }
 
@@ -73,8 +74,9 @@ function initTabs() {
     });
   });
   const hash = location.hash.slice(1);
-  showTab(TABS.includes(hash) ? hash : "today");
-  window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (TABS.includes(h)) showTab(h); });
+  const go = h => (h === "good" ? good.open() : h === "kind" ? kindness.open() : showTab(h)); // these reset their form on open
+  go(TABS.includes(hash) ? hash : "today");
+  window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (TABS.includes(h)) go(h); });
 }
 
 function initAppearance() {

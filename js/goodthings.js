@@ -14,6 +14,7 @@ export async function load() {
 
 const entries = () => ctx.state.good;
 const key = () => weekKey(today(), settings.day);
+let openWeek = null; // the week the open screen was filled for; Save files under it
 
 async function setSettings(next) {
   settings = next;
@@ -47,7 +48,7 @@ export function init(c) {
 
 /* Opens the screen with this week's entry filled in, or empty rows. */
 export function open() {
-  const k = key(), cur = entries().find(e => e.week === k);
+  const k = (openWeek = key()), cur = entries().find(e => e.week === k);
   for (let i = 0; i < 3; i++) {
     $("goodT" + i).value = cur?.items[i]?.text || "";
     $("goodW" + i).value = cur?.items[i]?.why || "";
@@ -58,7 +59,7 @@ export function open() {
 
 async function saveWeek() {
   const rows = [0, 1, 2].map(i => ({ text: $("goodT" + i).value, why: $("goodW" + i).value }));
-  const r = saveGoodWeek(entries(), key(), rows);
+  const r = saveGoodWeek(entries(), openWeek || key(), rows);
   if (r.error) { toast(r.error); $("goodT0").focus(); return; }
   ctx.state.good = r.good;
   if (await ctx.persist()) toast("Saved. Nice noticing.");
@@ -84,7 +85,7 @@ function week(e) {
     const r = el("div", "good-item");
     r.append(el("span", null, it.text));
     if (it.why) r.append(el("span", "hint", it.why));
-    r.append(smallBtn("Add to Joy jar", "ghost", () => ctx.startJoyNote(it.text, it.why)));
+    r.append(smallBtn("Add to Joy jar", "ghost", () => ctx.startJoyNote(it.text.slice(0, 120), it.why)));
     d.append(r);
   }
   d.append(delButton(async () => {

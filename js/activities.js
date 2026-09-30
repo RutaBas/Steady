@@ -6,7 +6,8 @@ import { $, esc, uid, toast, setRange, entry, emptyMsg, fmt, areaPicker, el } fr
 let ctx, area, fromPlan = null;
 function curBlock() { const h = new Date().getHours(); return h < 6 ? 9 : Math.min(8, Math.floor((h - 6) / 2)); }
 
-function forgetPlan() { fromPlan = null; $("a-expect").hidden = true; }
+/* Drops the "Did it" link, so a later unrelated activity isn't tied to the plan. */
+export function forgetPlan() { fromPlan = null; $("a-expect").hidden = true; }
 
 export function setMode(m) {
   if (m !== "log") forgetPlan();
@@ -17,7 +18,7 @@ export function setMode(m) {
 
 function resetForm() {
   $("a-what").value = ""; setRange("a-p", 5); setRange("a-m", 5); area.set(null);
-  fromPlan = null; $("a-expect").hidden = true;
+  forgetPlan();
 }
 
 /* "Did it" on Today: open Log with the plan filled in. Saving logs it and removes the plan. */
@@ -27,10 +28,11 @@ export function prefill(p) {
   $("a-date").value = today();
   $("a-block").selectedIndex = BLOCKS.includes(p.block) ? BLOCKS.indexOf(p.block) : curBlock();
   $("a-what").value = p.what;
+  setRange("a-p", 5); setRange("a-m", 5);
   area.set(p.area);
   fromPlan = p;
   $("a-expect").hidden = typeof p.expect !== "number";
-  $("a-expect").textContent = `You expected ${p.expect}`;
+  if (typeof p.expect === "number") $("a-expect").textContent = `You expected ${p.expect}`;
   render();
   $("a-p").focus();
 }

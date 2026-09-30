@@ -84,8 +84,9 @@ Having something good coming up can lift the days before it, and depression tend
 On the **Activities** tab, switch to **Plan** to plan a small activity for today or a later day, with an optional time, life area and a guess at how much you'll enjoy it. Planning ahead is the core of behavioral activation, which works about as well as full CBT for depression (Cuijpers et al., 2007; Ekers et al., 2014).
 
 - Today's plans show on **Today** with **Did it**, which opens the log with the activity filled in.
-- If a plan didn't happen, Today asks once: **Try today** or **Let it go**. Plans older than 3 days disappear quietly. Nothing is counted.
+- If a plan didn't happen, Today shows a gentle line: **Try today** or **Let it go**. Plans older than 3 days disappear quietly. Nothing is counted.
 - Tagging activities with a life area shows which parts of your week have had attention. Your guesses are compared with how it actually went: depression often underestimates how much you'll enjoy things.
+- Plans, good things and self-compassion breaks are included in **Export backup file**.
 
 ## Three good things
 

@@ -7,7 +7,7 @@ let ctx, step = 0;
 const steps = () => document.querySelectorAll("#tab-kind .kind-step");
 const syncJoy = () => ($("kindJoy").hidden = step !== 2 || !$("kindWords").value.trim());
 
-function show(n) {
+function show(n, focus = false) {
   step = n;
   steps().forEach((s, i) => (s.hidden = i !== n));
   document.querySelectorAll("#tab-kind .dots span").forEach((d, i) => d.classList.toggle("on", i <= n));
@@ -15,6 +15,7 @@ function show(n) {
   $("kindNext").hidden = n === 2;
   $("kindDone").hidden = n !== 2;
   syncJoy();
+  if (focus) steps()[n].querySelector("h3").focus({ preventScroll: false });
 }
 
 function reset() { $("kindHard").value = ""; $("kindWords").value = ""; show(0); }
@@ -31,14 +32,14 @@ async function finish(toJoy) {
   reset();
   render();
   if (b && toJoy) ctx.startJoyNote("Kind words to myself", b.words);
-  else if (b) $("kindPastWrap").scrollIntoView({ block: "start", behavior: "smooth" });
+  else if (b) $("kindPastWrap").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
 export function init(c) {
   ctx = c;
   $("kindBack").onclick = () => ctx.showTab("today");
-  $("kindNext").onclick = () => show(step + 1);
-  $("kindPrev").onclick = () => show(step - 1);
+  $("kindNext").onclick = () => show(step + 1, true);
+  $("kindPrev").onclick = () => show(step - 1, true);
   $("kindDone").onclick = () => finish(false);
   $("kindJoy").onclick = () => finish(true);
   $("kindWords").addEventListener("input", syncJoy);
